@@ -1,0 +1,67 @@
+// ==========================================
+// EasyFlashcard - Central API Client
+// ==========================================
+
+import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
+
+// Storage key for user ID in dev/offline mode
+const USER_ID_KEY = 'easyflashcard_user_id';
+const DEFAULT_USER_ID = 'dev_user_123';
+
+/**
+ * Returns the currently active user identifier for request headers.
+ */
+export function getCurrentUserId(): string {
+  try {
+    return localStorage.getItem(USER_ID_KEY) || DEFAULT_USER_ID;
+  } catch {
+    return DEFAULT_USER_ID;
+  }
+}
+
+/**
+ * Updates the user identifier in local storage.
+ */
+export function setCurrentUserId(userId: string): void {
+  try {
+    localStorage.setItem(USER_ID_KEY, userId.trim());
+  } catch {
+    // Local storage unavailable
+  }
+}
+
+// Instantiate Axios client with defaults
+export const apiClient: AxiosInstance = axios.create({
+  baseURL: '/api/v1',
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor to attach user ID header
+apiClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    config.headers.set('X-User-ID', getCurrentUserId());
+    return config;
+  },
+  (error: unknown) => Promise.reject(error)
+);
+
+// Response interceptor for consistent error extraction
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<{ detail?: string | { msg?: string }[] }>) => {
+    let message = 'An unexpected network error occurred';
+    if (error.response?.data?.detail) {
+      if (typeof error.response.data.detail === 'string') {
+        message = error.response.data.detail;
+      } else if (Array.isArray(error.response.data.detail) && error.response.data.detail.length > 0) {
+        message = error.response.data.detail[0].msg || 'Validation error';
+      }
+    } else if (error.message) {
+      message = error.message;
+    }
+    return Promise.reject(new Error(message));
+  }
+);

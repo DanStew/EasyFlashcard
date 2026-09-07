@@ -1,0 +1,52 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.loading-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  color: var(--color-primary);
+
+  &__circle {
+    border-radius: 50%;
+    border: 2.5px solid currentColor;
+    border-right-color: transparent;
+    animation: spin 0.65s linear infinite;
+  }
+
+  // Sizes
+  &--sm &__circle {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+  }
+
+  &--md &__circle {
+    width: 24px;
+    height: 24px;
+  }
+
+  &--lg &__circle {
+    width: 36px;
+    height: 36px;
+    border-width: 3px;
+  }
+
+  // Colors
+  &--primary {
+    color: var(--color-primary);
+  }
+
+  &--white {
+    color: #ffffff;
+  }
+
+  &--current {
+    color: currentColor;
+  }
+
+  &__label {
+    font-size: $font-size-sm;
+    color: var(--text-secondary);
+  }
+}

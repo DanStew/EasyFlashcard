@@ -1,0 +1,55 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  font-size: $font-size-sm;
+  color: var(--text-tertiary);
+
+  &__list {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    gap: $spacing-2;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: $spacing-1;
+    color: var(--text-secondary);
+    transition: color $transition-fast;
+    font-weight: $font-weight-medium;
+
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+
+  &__current {
+    font-weight: $font-weight-semibold;
+    color: var(--text-primary);
+    @include truncate;
+    max-width: 260px;
+  }
+
+  &__separator {
+    display: flex;
+    align-items: center;
+    color: var(--text-tertiary);
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}

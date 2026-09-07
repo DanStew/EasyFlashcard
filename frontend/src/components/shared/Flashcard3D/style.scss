@@ -1,0 +1,152 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.flashcard-3d {
+  @include card-3d-scene;
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+  user-select: none;
+
+  // Sizes
+  &--sm {
+    height: 180px;
+  }
+
+  &--md {
+    height: 240px;
+  }
+
+  &--lg {
+    height: 340px;
+  }
+
+  &__inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform $transition-slow cubic-bezier(0.4, 0.2, 0.2, 1);
+  }
+
+  &--flipped &__inner {
+    transform: rotateY(180deg);
+  }
+
+  &__face {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    @include card-3d-face;
+    background-color: var(--flashcard-bg);
+    border: 1px solid var(--flashcard-border);
+    border-radius: $radius-xl;
+    box-shadow: var(--shadow-md);
+    padding: $spacing-6;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    &--front {
+      transform: rotateY(0deg);
+    }
+
+    &--back {
+      transform: rotateY(180deg);
+      background: linear-gradient(145deg, var(--bg-surface-raised) 0%, var(--bg-surface) 100%);
+    }
+
+    &:hover {
+      box-shadow: var(--shadow-lg);
+      border-color: var(--color-primary-subtle);
+    }
+  }
+
+  &__header {
+    @include flex-between;
+    width: 100%;
+  }
+
+  &__type-badge {
+    font-size: 0.7rem;
+    font-weight: $font-weight-bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-primary);
+    background-color: var(--color-primary-subtle);
+    padding: 2px 8px;
+    border-radius: $radius-full;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-1;
+    z-index: 10;
+  }
+
+  &__action-btn {
+    @include flex-center;
+    width: 28px;
+    height: 28px;
+    border-radius: $radius-sm;
+    color: var(--text-tertiary);
+    transition: all $transition-fast;
+
+    &:hover {
+      background-color: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    &--delete:hover {
+      background-color: var(--color-danger-subtle);
+      color: var(--color-danger);
+    }
+  }
+
+  &__content {
+    @include flex-center;
+    flex: 1;
+    text-align: center;
+    padding: $spacing-2 0;
+  }
+
+  &__text {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+    color: var(--flashcard-text);
+    line-height: 1.5;
+    word-break: break-word;
+
+    &--back {
+      font-size: $font-size-md;
+      color: var(--text-primary);
+    }
+  }
+
+  &__footer {
+    @include flex-between;
+    width: 100%;
+  }
+
+  &__reference {
+    font-size: $font-size-xs;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background-color: var(--bg-hover);
+    padding: 2px 8px;
+    border-radius: $radius-full;
+  }
+
+  &__hint {
+    font-size: $font-size-xs;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+  }
+}

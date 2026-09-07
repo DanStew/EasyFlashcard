@@ -1,0 +1,185 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.folder-card {
+  position: relative;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: $radius-lg;
+  cursor: pointer;
+  transition: all $transition-normal;
+  user-select: none;
+
+  &:hover {
+    border-color: var(--border-focus);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  &:hover,
+  &:focus-within {
+    z-index: 10;
+  }
+
+  // Grid layout mode
+  &--grid {
+    padding: $spacing-4;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 120px;
+
+    .folder-card__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: $spacing-3;
+    }
+
+    .folder-card__icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: $radius-md;
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all $transition-fast;
+    }
+
+    &:hover .folder-card__icon-box {
+      transform: scale(1.05);
+      background: var(--accent-gradient);
+      color: #ffffff;
+    }
+
+    .folder-card__body {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-1;
+    }
+
+    .folder-card__name {
+      font-size: $font-size-md;
+      font-weight: $font-weight-semibold;
+      color: var(--text-primary);
+      @include truncate;
+      line-height: 1.3;
+    }
+
+    .folder-card__count {
+      font-size: $font-size-xs;
+      color: var(--text-tertiary);
+      font-weight: $font-weight-medium;
+    }
+
+    .folder-card__preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: $spacing-2;
+    }
+
+    .folder-card__preview-chip {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      background: var(--bg-surface-sunken);
+      border: 1px solid var(--border-subtle);
+      border-radius: $radius-sm;
+      padding: 2px 6px;
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: all $transition-fast;
+
+      &:hover {
+        color: var(--text-secondary);
+        border-color: var(--border-focus);
+      }
+    }
+  }
+
+  // List layout mode
+  &--list {
+    padding: $spacing-3 $spacing-4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-4;
+
+    .folder-card__left {
+      display: flex;
+      align-items: center;
+      gap: $spacing-3;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .folder-card__icon-box {
+      width: 32px;
+      height: 32px;
+      border-radius: $radius-sm;
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .folder-card__info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .folder-card__name {
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+      color: var(--text-primary);
+      @include truncate;
+    }
+
+    .folder-card__preview-inline {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      @include truncate;
+    }
+
+    .folder-card__count {
+      font-size: $font-size-xs;
+      color: var(--text-tertiary);
+      margin-left: auto;
+      padding-right: $spacing-4;
+      white-space: nowrap;
+    }
+  }
+
+  &__actions {
+    position: relative;
+    z-index: 2;
+
+    .folder-card__menu-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: $radius-sm;
+      background: transparent;
+      border: none;
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all $transition-fast;
+
+      &:hover {
+        background: var(--bg-surface-sunken);
+        color: var(--text-primary);
+      }
+    }
+  }
+}

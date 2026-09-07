@@ -1,0 +1,1 @@
+"""EasyFlashcard Backend Application."""

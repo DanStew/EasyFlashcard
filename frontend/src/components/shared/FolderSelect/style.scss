@@ -1,0 +1,190 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.folder-select {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+  position: relative;
+  width: 100%;
+
+  &__label {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    color: var(--text-secondary);
+    letter-spacing: 0.01em;
+  }
+
+  &__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 42px;
+    padding: 0 $spacing-3;
+    background-color: var(--bg-surface-raised);
+    border: 1px solid var(--border-light);
+    border-radius: $radius-md;
+    cursor: pointer;
+    transition: border-color $transition-fast, box-shadow $transition-fast, background-color $transition-fast;
+    user-select: none;
+
+    &:hover:not(&--disabled) {
+      border-color: var(--border-focus);
+      background-color: var(--bg-hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--color-primary-subtle);
+    }
+
+    &--open {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--color-primary-subtle);
+    }
+
+    &--disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__info {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    min-width: 0;
+  }
+
+  &__icon {
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  &__text {
+    display: flex;
+    align-items: baseline;
+    gap: $spacing-2;
+    min-width: 0;
+  }
+
+  &__name {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: var(--text-primary);
+    @include truncate;
+  }
+
+  &__path {
+    font-size: $font-size-xs;
+    color: var(--text-tertiary);
+    font-family: $font-family-mono;
+    @include truncate;
+  }
+
+  &__badge {
+    flex-shrink: 0;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    padding: 2px 8px;
+    border-radius: $radius-sm;
+    background-color: var(--bg-surface-sunken);
+    color: var(--color-primary);
+    transition: all $transition-fast;
+
+    &:hover {
+      background-color: var(--color-primary-subtle);
+    }
+  }
+
+  &__dropdown {
+    position: absolute;
+    top: calc(100% + #{$spacing-1});
+    left: 0;
+    right: 0;
+    background-color: var(--bg-surface-raised);
+    border: 1px solid var(--border-light);
+    border-radius: $radius-lg;
+    box-shadow: var(--shadow-lg);
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: $z-index-dropdown;
+    padding: $spacing-1;
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+
+    &--open {
+      display: flex;
+    }
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-2;
+    padding: $spacing-2 $spacing-3;
+    border-radius: $radius-md;
+    font-size: $font-size-sm;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background-color $transition-fast, color $transition-fast;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+
+    &:hover {
+      background-color: var(--bg-hover);
+      color: var(--color-primary);
+    }
+
+    &--selected {
+      background-color: var(--color-primary-subtle);
+      color: var(--color-primary);
+      font-weight: $font-weight-semibold;
+
+      &:hover {
+        background-color: var(--color-primary-subtle);
+      }
+    }
+  }
+
+  &__option-content {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    min-width: 0;
+  }
+
+  &__option-icon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: inherit;
+  }
+
+  &__option-name {
+    @include truncate;
+  }
+
+  &__option-path {
+    font-size: $font-size-xs;
+    color: var(--text-tertiary);
+    font-family: $font-family-mono;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  &__check {
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: $spacing-2;
+  }
+}

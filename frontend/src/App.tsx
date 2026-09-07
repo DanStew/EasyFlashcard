@@ -1,0 +1,42 @@
+import { useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AppLayout } from '@/components/layouts/AppLayout';
+import { WorkspaceProvider } from '@/context/WorkspaceContext';
+import { FolderExplorerView } from '@/views/FolderExplorerView';
+import { SetDetailView } from '@/views/SetDetailView';
+import { SetEditorView } from '@/views/SetEditorView';
+
+export function App() {
+  const [globalSearch, setGlobalSearch] = useState('');
+
+  return (
+    <BrowserRouter>
+      <WorkspaceProvider>
+        <AppLayout
+          searchValue={globalSearch}
+          onSearchChange={setGlobalSearch}
+        >
+          <Routes>
+            {/* Unified Workspace & Library */}
+            <Route path="/" element={<FolderExplorerView />} />
+            <Route path="/folder/:folderId" element={<FolderExplorerView />} />
+
+            {/* Redirect legacy separated endpoints to unified workspace */}
+            <Route path="/folders" element={<Navigate to="/" replace />} />
+            <Route path="/sets" element={<Navigate to="/" replace />} />
+
+            {/* Sets & Flashcards */}
+            <Route path="/set/:setId" element={<SetDetailView />} />
+            <Route path="/set/:setId/edit" element={<SetEditorView />} />
+            <Route path="/create-set" element={<SetEditorView />} />
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AppLayout>
+      </WorkspaceProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;

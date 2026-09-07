@@ -1,0 +1,88 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.card-surface {
+  background-color: var(--bg-card);
+  border-radius: $radius-xl;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-card);
+  transition: all $transition-normal;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+
+  // Variants
+  &--default {
+    background-color: var(--bg-card);
+  }
+
+  &--raised {
+    background-color: var(--bg-surface-raised);
+    box-shadow: var(--shadow-md);
+  }
+
+  &--outlined {
+    background-color: var(--bg-surface);
+    border-color: var(--border-default);
+    box-shadow: none;
+  }
+
+  &--glass {
+    @include glass-panel;
+    box-shadow: var(--shadow-sm);
+  }
+
+  &--interactive {
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card-hover);
+      border-color: var(--color-primary-subtle);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  &--hoverable:not(&--interactive) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card-hover);
+    }
+  }
+
+  // Padding modifiers
+  &--pad-none {
+    padding: 0;
+  }
+
+  &--pad-sm {
+    padding: $spacing-3 $spacing-4;
+  }
+
+  &--pad-md {
+    padding: $spacing-5 $spacing-6;
+  }
+
+  &--pad-lg {
+    padding: $spacing-6 $spacing-8;
+  }
+
+  &__header {
+    margin-bottom: $spacing-4;
+  }
+
+  &__body {
+    flex: 1;
+  }
+
+  &__footer {
+    margin-top: $spacing-4;
+    padding-top: $spacing-3;
+    border-top: 1px solid var(--border-light);
+  }
+}

@@ -1,0 +1,56 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.skeleton-pulse {
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface-raised) 25%,
+    var(--bg-hover) 37%,
+    var(--bg-surface-raised) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeletonLoading 1.4s ease infinite;
+  border-radius: $radius-sm;
+
+  &--text {
+    height: 16px;
+    width: 100%;
+    margin-bottom: $spacing-2;
+    border-radius: $radius-xs;
+  }
+
+  &--rectangular {
+    height: 100%;
+    width: 100%;
+    min-height: 40px;
+    border-radius: $radius-md;
+  }
+
+  &--circular {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+
+  &--card {
+    height: 200px;
+    width: 100%;
+    border-radius: $radius-xl;
+  }
+}
+
+.skeleton-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  width: 100%;
+}
+
+@keyframes skeletonLoading {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
