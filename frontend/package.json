@@ -8,9 +8,18 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "seed": "python ../backend/scripts/seed_dev_data.py --base-url http://127.0.0.1:8000"
+    "seed": "python ../backend/scripts/seed_dev_data.py --base-url http://127.0.0.1:8000",
+    "cap:sync": "cap sync",
+    "cap:copy": "cap copy",
+    "cap:open": "cap open android",
+    "cap:build": "npm run build && cap sync android",
+    "cap:run": "npm run build && cap run android"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.1",
+    "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/status-bar": "^8.0.3",
     "axios": "^1.20.0",
     "katex": "^0.18.7",
     "lucide-react": "^1.38.0",
@@ -25,6 +34,8 @@
     "sass": "^1.103.1"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.5.1",
+    "@capacitor/cli": "^8.5.1",
     "@types/katex": "^0.16.8",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",

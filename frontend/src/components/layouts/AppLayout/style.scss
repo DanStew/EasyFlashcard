@@ -288,6 +288,30 @@
   &__seed-icon--spin {
     animation: spin 1s linear infinite;
   }
+
+  &__footer-actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+  }
+
+  &__server-btn {
+    @include flex-center;
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-md;
+    border: 1px solid var(--border-light);
+    background-color: var(--bg-surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: var(--color-primary);
+      border-color: var(--color-primary);
+      background-color: var(--bg-hover);
+    }
+  }
 }
 
 // Main Viewport Content

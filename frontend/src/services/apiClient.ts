@@ -3,6 +3,7 @@
 // ==========================================
 
 import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
+import { getApiBaseUrl, EVENT_API_BASE_URL_CHANGED } from '@/utils/capacitorUtils';
 
 // Storage key for user ID in dev/offline mode
 const USER_ID_KEY = 'easyflashcard_user_id';
@@ -32,16 +33,24 @@ export function setCurrentUserId(userId: string): void {
 
 // Instantiate Axios client with defaults
 export const apiClient: AxiosInstance = axios.create({
-  baseURL: '/api/v1',
+  baseURL: getApiBaseUrl(),
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to attach user ID header
+// Update client default baseURL when changed dynamically
+if (typeof window !== 'undefined') {
+  window.addEventListener(EVENT_API_BASE_URL_CHANGED, () => {
+    apiClient.defaults.baseURL = getApiBaseUrl();
+  });
+}
+
+// Request interceptor to attach user ID header and ensure latest base URL
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    config.baseURL = getApiBaseUrl();
     config.headers.set('X-User-ID', getCurrentUserId());
     return config;
   },

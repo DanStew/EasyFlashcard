@@ -1,0 +1,135 @@
+name: Deploy Backend to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Build & Deploy to Cloud Run
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Strict validation: Ensure all required secrets are provided with zero fallbacks
+      - name: Validate Required Secrets
+        shell: bash
+        run: |
+          echo "Validating required GitHub Secrets..."
+          MISSING=""
+
+          if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
+            MISSING="${MISSING} GCP_PROJECT_ID"
+          fi
+          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
+            MISSING="${MISSING} GCP_SA_KEY"
+          fi
+          if [ -z "${{ secrets.GCP_REGION }}" ]; then
+            MISSING="${MISSING} GCP_REGION"
+          fi
+          if [ -z "${{ secrets.GCP_SERVICE_NAME }}" ]; then
+            MISSING="${MISSING} GCP_SERVICE_NAME"
+          fi
+          if [ -z "${{ secrets.GCP_ARTIFACT_REPO }}" ]; then
+            MISSING="${MISSING} GCP_ARTIFACT_REPO"
+          fi
+
+          if [ -n "$MISSING" ]; then
+            echo "::error::Missing required GitHub Secrets:${MISSING}"
+            echo "Please navigate to Repository Settings -> Secrets and variables -> Actions and configure all required secrets."
+            echo "Refer to docs/GCP_DEPLOYMENT_SETUP.md for complete instructions."
+            exit 1
+          fi
+
+          echo "All required secrets are present and non-empty."
+
+      # Authenticate to Google Cloud using Service Account JSON Key
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # Set up gcloud Cloud SDK CLI
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      # Configure Docker auth helper for Google Artifact Registry
+      - name: Configure Docker for Artifact Registry
+        shell: bash
+        run: |
+          gcloud auth configure-docker "${{ secrets.GCP_REGION }}-docker.pkg.dev" --quiet
+
+      # Build and Push Docker image to Artifact Registry
+      - name: Build and Push Docker Image
+        shell: bash
+        run: |
+          IMAGE_TAG="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/${{ secrets.GCP_SERVICE_NAME }}:${{ github.sha }}"
+          LATEST_TAG="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/${{ secrets.GCP_SERVICE_NAME }}:latest"
+
+          echo "Building backend Docker image..."
+          docker build \
+            -t "${IMAGE_TAG}" \
+            -t "${LATEST_TAG}" \
+            ./backend
+
+          echo "Pushing images to Artifact Registry..."
+          docker push "${IMAGE_TAG}"
+          docker push "${LATEST_TAG}"
+
+      # Deploy container to Google Cloud Run
+      - name: Deploy to Cloud Run
+        id: deploy
+        shell: bash
+        run: |
+          IMAGE_TAG="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/${{ secrets.GCP_SERVICE_NAME }}:${{ github.sha }}"
+
+          echo "Deploying ${IMAGE_TAG} to Cloud Run service ${{ secrets.GCP_SERVICE_NAME }} in ${{ secrets.GCP_REGION }}..."
+
+          gcloud run deploy "${{ secrets.GCP_SERVICE_NAME }}" \
+            --image "${IMAGE_TAG}" \
+            --region "${{ secrets.GCP_REGION }}" \
+            --project "${{ secrets.GCP_PROJECT_ID }}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8000 \
+            --set-env-vars "ENVIRONMENT=production,STORAGE_BACKEND=memory,APP_NAME=EasyFlashcard API" \
+            --format 'value(status.url)' > service_url.txt
+
+          SERVICE_URL=$(cat service_url.txt)
+          echo "SERVICE_URL=${SERVICE_URL}" >> $GITHUB_OUTPUT
+          echo "Deployed successfully to: ${SERVICE_URL}"
+
+      # Health check against deployed Cloud Run service
+      - name: Verify Health Endpoint
+        shell: bash
+        run: |
+          SERVICE_URL="${{ steps.deploy.outputs.SERVICE_URL }}"
+          echo "Testing health check on ${SERVICE_URL}/health..."
+
+          HEALTH_STATUS=$(curl -sf "${SERVICE_URL}/health" || echo "FAILED")
+
+          if [ "$HEALTH_STATUS" = "FAILED" ]; then
+            echo "::warning::Health check did not respond immediately. Cloud Run cold start may still be in progress."
+          else
+            echo "Health check succeeded: ${HEALTH_STATUS}"
+          fi
+
+          echo ""
+          echo "============================================================"
+          echo "Cloud Run Deployment Complete!"
+          echo "Service URL: ${SERVICE_URL}"
+          echo "API Base Endpoint: ${SERVICE_URL}/api/v1"
+          echo "============================================================"

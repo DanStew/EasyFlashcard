@@ -8,6 +8,7 @@ import {
   PanelLeftOpen,
   Plus,
   RefreshCw,
+  Server,
   Sparkles,
 } from 'lucide-react';
 import { Badge } from '@/components/shared/Badge';
@@ -17,6 +18,7 @@ import { FolderTreeNav } from '@/components/shared/FolderTreeNav';
 import { GlobalSearch } from '@/components/shared/GlobalSearch';
 import { Input } from '@/components/shared/Input';
 import { Modal } from '@/components/shared/Modal';
+import { ServerConfigModal } from '@/components/shared/ServerConfigModal';
 import { StudySetSelectorModal } from '@/components/shared/StudySetSelectorModal';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { useToast } from '@/hooks/useToast';
@@ -56,6 +58,7 @@ export function AppLayout({
 
   // Modals state
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
+  const [isServerConfigOpen, setIsServerConfigOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [parentFolderId, setParentFolderId] = useState<string | null>(null);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
@@ -288,7 +291,18 @@ export function AppLayout({
                 </button>
               </div>
             </div>
-            <ThemeToggle />
+            <div className="app-sidebar__footer-actions">
+              <button
+                type="button"
+                className="app-sidebar__server-btn"
+                onClick={() => setIsServerConfigOpen(true)}
+                title="Configure Backend Server Connection (LAN / Mobile)"
+                aria-label="Configure Backend Server Connection"
+              >
+                <Server size={14} />
+              </button>
+              <ThemeToggle />
+            </div>
           </div>
         </aside>
 
@@ -342,6 +356,12 @@ export function AppLayout({
         isOpen={isStudyModalOpen}
         onClose={closeStudyModal}
         initialFolderId={studyModalFolderId}
+      />
+
+      {/* Backend Server Connection Settings Modal */}
+      <ServerConfigModal
+        isOpen={isServerConfigOpen}
+        onClose={() => setIsServerConfigOpen(false)}
       />
     </div>
   );
