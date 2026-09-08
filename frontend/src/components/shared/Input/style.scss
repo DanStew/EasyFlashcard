@@ -81,6 +81,11 @@
     font-size: $font-size-sm;
     color: var(--text-primary);
 
+    // Prevents mobile browser auto-zoom on focus (< 16px triggers iOS auto-zoom)
+    @media (max-width: $breakpoint-md) {
+      font-size: 16px;
+    }
+
     &::placeholder {
       color: var(--text-tertiary);
     }

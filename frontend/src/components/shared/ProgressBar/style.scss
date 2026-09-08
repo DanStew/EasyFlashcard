@@ -1,0 +1,72 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.progress-bar {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+  width: 100%;
+
+  &__header {
+    @include flex-between;
+    font-size: $font-size-xs;
+    color: var(--text-secondary);
+    font-weight: $font-weight-medium;
+  }
+
+  &__track {
+    position: relative;
+    width: 100%;
+    background-color: var(--bg-surface-sunken);
+    border: 1px solid var(--border-subtle);
+    border-radius: $radius-full;
+    overflow: hidden;
+    display: flex;
+  }
+
+  &__fill {
+    height: 100%;
+    transition: width $transition-slow;
+    border-radius: $radius-full;
+
+    &--default {
+      background-color: var(--color-primary);
+    }
+
+    &--gradient {
+      background: var(--accent-gradient);
+    }
+
+    &--success {
+      background-color: var(--color-success);
+    }
+  }
+
+  &__segment {
+    height: 100%;
+    transition: width $transition-slow;
+
+    &:first-child {
+      border-top-left-radius: $radius-full;
+      border-bottom-left-radius: $radius-full;
+    }
+
+    &:last-child {
+      border-top-right-radius: $radius-full;
+      border-bottom-right-radius: $radius-full;
+    }
+  }
+
+  // Sizes
+  &--sm &__track {
+    height: 4px;
+  }
+
+  &--md &__track {
+    height: 8px;
+  }
+
+  &--lg &__track {
+    height: 12px;
+  }
+}

@@ -130,6 +130,10 @@
       display: flex;
       gap: $spacing-1;
       margin-left: auto;
+
+      @include breakpoint-sm {
+        display: none;
+      }
     }
 
     .set-card__date {
@@ -138,6 +142,10 @@
       white-space: nowrap;
       min-width: 70px;
       text-align: right;
+
+      @include breakpoint-xs {
+        display: none;
+      }
     }
 
     .set-card__actions {
@@ -157,8 +165,8 @@
   }
 
   .set-card__menu-btn {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: $radius-sm;
     background: transparent;
     border: none;
@@ -168,6 +176,11 @@
     justify-content: center;
     cursor: pointer;
     transition: all $transition-fast;
+
+    @media (pointer: coarse) {
+      min-width: 36px;
+      min-height: 36px;
+    }
 
     &:hover {
       background: var(--bg-surface-sunken);

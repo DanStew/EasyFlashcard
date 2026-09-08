@@ -48,11 +48,25 @@ apiClient.interceptors.request.use(
   (error: unknown) => Promise.reject(error)
 );
 
+export class ApiError extends Error {
+  status?: number;
+  isNotFound: boolean;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.isNotFound = status === 404;
+  }
+}
+
 // Response interceptor for consistent error extraction
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ detail?: string | { msg?: string }[] }>) => {
     let message = 'An unexpected network error occurred';
+    const status = error.response?.status;
+
     if (error.response?.data?.detail) {
       if (typeof error.response.data.detail === 'string') {
         message = error.response.data.detail;
@@ -62,6 +76,8 @@ apiClient.interceptors.response.use(
     } else if (error.message) {
       message = error.message;
     }
-    return Promise.reject(new Error(message));
+
+    return Promise.reject(new ApiError(message, status));
   }
 );
+

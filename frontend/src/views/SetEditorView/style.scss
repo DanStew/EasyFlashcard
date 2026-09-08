@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-6;
-  max-width: 960px;
+  max-width: min(100%, 1020px);
   margin: 0 auto;
 
   &__breadcrumbs {
@@ -21,11 +21,16 @@
       flex-direction: column;
       align-items: flex-start;
       gap: $spacing-4;
+
+      .set-editor-view__actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
     }
   }
 
   &__title {
-    font-size: $font-size-2xl;
+    font-size: clamp($font-size-xl, 3vw, $font-size-2xl);
     font-weight: $font-weight-extrabold;
   }
 
@@ -33,6 +38,7 @@
     display: flex;
     align-items: center;
     gap: $spacing-3;
+    flex-wrap: wrap;
   }
 
   // Set Details Form Card
@@ -68,6 +74,15 @@
 
   &__cards-header {
     @include flex-between;
+    flex-wrap: wrap;
+    gap: $spacing-2;
+  }
+
+  &__cards-title-group {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    flex-wrap: wrap;
   }
 
   &__cards-title {
@@ -80,7 +95,7 @@
     border: 1px solid var(--border-light);
     border-radius: $radius-xl;
     box-shadow: var(--shadow-xs);
-    padding: $spacing-5 $spacing-6;
+    padding: clamp($spacing-3, 3vw, $spacing-6);
     display: flex;
     flex-direction: column;
     gap: $spacing-4;
@@ -112,11 +127,16 @@
 
   &__row-btn {
     @include flex-center;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: $radius-sm;
     color: var(--text-tertiary);
     transition: all $transition-fast;
+
+    @media (pointer: coarse) {
+      min-width: 36px;
+      min-height: 36px;
+    }
 
     &:hover:not(:disabled) {
       background-color: var(--bg-hover);
@@ -148,6 +168,8 @@
 
   &__bottom-actions {
     @include flex-between;
+    flex-wrap: wrap;
+    gap: $spacing-3;
     padding-top: $spacing-6;
     border-top: 1px solid var(--border-light);
     margin-top: $spacing-4;

@@ -1,0 +1,72 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.study-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: $stage-width-study;
+  margin: 0 auto;
+  padding: $spacing-2 0;
+  transition: max-width $transition-normal;
+
+  &__card-area {
+    position: relative;
+    width: 100%;
+    min-height: $card-height-lg;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // Underneath peek card simulating tactile physical deck stack
+  &__peek-card {
+    position: absolute;
+    width: 96%;
+    height: calc(100% - 20px);
+    top: 14px;
+    border-radius: $radius-2xl;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0.55;
+    transform: scale(0.98);
+    transition: all $transition-normal;
+  }
+
+  &__active-card {
+    position: relative;
+    width: 100%;
+    z-index: 10;
+  }
+
+  // Focus Mode enhancements for hero-sized flashcard
+  &--focus {
+    max-width: $stage-width-focus;
+
+    .study-stage__card-area {
+      min-height: $card-height-focus;
+    }
+
+    .study-stage__peek-card {
+      height: calc(100% - 24px);
+    }
+
+    .study-stage__focus-card {
+      height: $card-height-focus !important;
+
+      .flashcard-3d__text {
+        font-size: clamp(1.45rem, 1.2rem + 1.6vw, 2.85rem) !important;
+
+        &--back {
+          font-size: clamp(1.1rem, 1rem + 0.8vw, 1.85rem) !important;
+        }
+      }
+    }
+  }
+}

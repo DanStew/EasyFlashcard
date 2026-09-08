@@ -15,16 +15,17 @@ import { Breadcrumbs } from '@/components/shared/Breadcrumbs';
 import { Button } from '@/components/shared/Button';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Flashcard3D } from '@/components/shared/Flashcard3D';
-import { Input } from '@/components/shared/Input';
 import { Modal } from '@/components/shared/Modal';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { TextArea } from '@/components/shared/TextArea';
 import { useToast } from '@/hooks/useToast';
 import { useWorkspace } from '@/hooks/useWorkspace';
+import { ApiError } from '@/services/apiClient';
 import { flashcardService } from '@/services/flashcardService';
 import { setService } from '@/services/setService';
 import type { Flashcard } from '@/types/flashcard';
 import type { SetModel } from '@/types/set';
+import { NotFoundView } from '@/views/NotFoundView';
 import type { SetDetailViewProps } from './types';
 import './style.scss';
 
@@ -39,6 +40,7 @@ export function SetDetailView({ setId: propSetId }: SetDetailViewProps) {
   const [set, setSet] = useState<SetModel | null>(null);
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isNotFound, setIsNotFound] = useState(false);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
 
   // Edit Card Modal
@@ -56,6 +58,7 @@ export function SetDetailView({ setId: propSetId }: SetDetailViewProps) {
 
     try {
       setIsLoading(true);
+      setIsNotFound(false);
       const [setData, cardsData] = await Promise.all([
         setService.getSet(activeSetId),
         flashcardService.listCardsBySet(activeSetId),
@@ -64,7 +67,11 @@ export function SetDetailView({ setId: propSetId }: SetDetailViewProps) {
       setCards(cardsData);
       setActiveCardIndex(0);
     } catch (err: unknown) {
-      showError(err instanceof Error ? err.message : 'Failed to load flashcard set');
+      if (err instanceof ApiError && err.isNotFound) {
+        setIsNotFound(true);
+      } else {
+        showError(err instanceof Error ? err.message : 'Failed to load flashcard set');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -129,6 +136,10 @@ export function SetDetailView({ setId: propSetId }: SetDetailViewProps) {
 
   const currentStageCard = cards[activeCardIndex] || null;
 
+  if (isNotFound) {
+    return <NotFoundView entityType="set" />;
+  }
+
   const baseBreadcrumbs = getBreadcrumbsForFolder(set?.folderId || null);
   const breadcrumbs = set
     ? [...baseBreadcrumbs, { id: set.id, label: set.name }]
@@ -180,8 +191,13 @@ export function SetDetailView({ setId: propSetId }: SetDetailViewProps) {
             variant="gradient"
             size="lg"
             leftIcon={<Play size={18} />}
-            isComingSoon
-            tooltip="Interactive Study Mode coming in next release"
+            disabled={cards.length === 0}
+            tooltip={
+              cards.length === 0
+                ? 'Add flashcards to this set to begin studying'
+                : 'Study flashcards with interactive flips and swipe gestures'
+            }
+            onClick={() => navigate(`/set/${activeSetId}/study`)}
           >
             Study Flashcards
           </Button>
@@ -295,10 +311,11 @@ export function SetDetailView({ setId: propSetId }: SetDetailViewProps) {
         title="Edit Flashcard"
       >
         <form onSubmit={handleUpdateCard} className="set-detail-view__modal-form">
-          <Input
+          <TextArea
             label="Term / Front"
             value={editFrontText}
             onChange={(e) => setEditFrontText(e.target.value)}
+            rows={2}
             autoFocus
             fullWidth
             required
@@ -312,6 +329,10 @@ export function SetDetailView({ setId: propSetId }: SetDetailViewProps) {
             fullWidth
             required
           />
+
+          <p className="set-detail-view__format-hint">
+            Supports Markdown formatting and LaTeX equations ($...$ inline, $$...$$ block)
+          </p>
 
           <div className="set-detail-view__modal-actions">
             <Button

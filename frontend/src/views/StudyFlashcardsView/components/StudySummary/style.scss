@@ -1,0 +1,218 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.study-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 600px;
+  margin: $spacing-6 auto;
+  padding: clamp($spacing-5, 4vw, $spacing-8) clamp($spacing-4, 4vw, $spacing-6);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: $radius-2xl;
+  box-shadow: var(--shadow-lg);
+  animation: fadeIn 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  &__badge-icon {
+    @include flex-center;
+    width: 64px;
+    height: 64px;
+    border-radius: $radius-full;
+    background: var(--color-primary-subtle);
+    color: var(--color-primary);
+    margin-bottom: $spacing-4;
+  }
+
+  &__title {
+    font-size: clamp($font-size-xl, 3.5vw, $font-size-2xl);
+    font-weight: $font-weight-extrabold;
+    color: var(--text-primary);
+    margin-bottom: $spacing-2;
+  }
+
+  &__subtitle {
+    font-size: $font-size-sm;
+    color: var(--text-secondary);
+    max-width: 440px;
+    line-height: 1.5;
+    margin-bottom: $spacing-6;
+  }
+
+  // Large Mastery Percentage Callout
+  &__score-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: $spacing-6;
+  }
+
+  &__score-value {
+    font-size: clamp(2.5rem, 8vw, 3.5rem);
+    font-weight: $font-weight-extrabold;
+    line-height: 1;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &__score-label {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-top: $spacing-1;
+  }
+
+  // Stats Grid Breakdown
+  &__stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-3;
+    width: 100%;
+    margin-bottom: $spacing-6;
+
+    @include breakpoint-sm {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: $spacing-4;
+    background-color: var(--bg-surface-raised);
+    border: 1px solid var(--border-light);
+    border-radius: $radius-lg;
+
+    &--mastered {
+      border-color: rgba(16, 185, 129, 0.3);
+      background-color: var(--color-success-subtle);
+
+      .study-summary__stat-num {
+        color: var(--color-success);
+      }
+    }
+
+    &--retry {
+      border-color: rgba(245, 158, 11, 0.3);
+      background-color: var(--color-warning-subtle);
+
+      .study-summary__stat-num {
+        color: var(--color-warning);
+      }
+    }
+  }
+
+  &__stat-num {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-extrabold;
+    color: var(--text-primary);
+  }
+
+  &__stat-text {
+    font-size: $font-size-xs;
+    color: var(--text-secondary);
+    margin-top: $spacing-1;
+  }
+
+  // Multi-Set Breakdown
+  &__sets-breakdown {
+    width: 100%;
+    margin-bottom: $spacing-6;
+    background-color: var(--bg-surface-raised);
+    border: 1px solid var(--border-light);
+    border-radius: $radius-lg;
+    padding: $spacing-4;
+    text-align: left;
+  }
+
+  &__sets-title {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    margin: 0 0 $spacing-3;
+  }
+
+  &__sets-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-2;
+  }
+
+  &__set-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-3;
+    padding: $spacing-2 $spacing-3;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: $radius-md;
+  }
+
+  &__set-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__set-name {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: var(--text-primary);
+    @include truncate;
+  }
+
+  &__set-detail {
+    font-size: $font-size-xs;
+    color: var(--text-secondary);
+  }
+
+  &__set-rate {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-bold;
+    padding: 2px 8px;
+    border-radius: $radius-full;
+    flex-shrink: 0;
+
+    &--high {
+      color: var(--color-success);
+      background-color: var(--color-success-subtle);
+    }
+
+    &--mid {
+      color: var(--color-warning);
+      background-color: var(--color-warning-subtle);
+    }
+
+    &--low {
+      color: var(--color-danger, #ef4444);
+      background-color: var(--color-danger-subtle, rgba(239, 68, 68, 0.1));
+    }
+  }
+
+  // Action Buttons Stack
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-3;
+    width: 100%;
+  }
+
+  &__actions-row {
+    display: flex;
+    gap: $spacing-3;
+    justify-content: center;
+
+    @include breakpoint-xs {
+      flex-direction: column;
+    }
+  }
+}

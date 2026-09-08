@@ -1,0 +1,325 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.rich-content {
+  width: 100%;
+  max-width: 100%;
+  line-height: 1.55;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  margin: auto 0; // Vertically centers when short; naturally starts at 0 when tall
+
+  // Text alignment modifiers
+  &--align-center {
+    text-align: center;
+    align-items: center;
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      text-align: center;
+    }
+  }
+
+  &--align-left {
+    text-align: left;
+    align-items: flex-start;
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      text-align: left;
+    }
+  }
+
+  // Density Scaling: Short/Punchy (Titles, Simple Terms)
+  &--density-short {
+    font-size: clamp(1.15rem, 1rem + 0.6vw, 1.6rem);
+    font-weight: $font-weight-medium;
+
+    &.rich-content--size-sm {
+      font-size: clamp(1rem, 0.95rem + 0.3vw, 1.25rem);
+    }
+
+    &.rich-content--size-lg,
+    &.rich-content--size-focus {
+      font-size: clamp(1.35rem, 1.15rem + 1vw, 2.25rem);
+      font-weight: $font-weight-semibold;
+    }
+  }
+
+  // Density Scaling: Medium (1-2 sentences, simple equations)
+  &--density-medium {
+    font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.15rem);
+    line-height: 1.55;
+
+    &.rich-content--size-sm {
+      font-size: 0.9rem;
+    }
+
+    &.rich-content--size-lg,
+    &.rich-content--size-focus {
+      font-size: clamp(1.1rem, 1rem + 0.5vw, 1.45rem);
+    }
+  }
+
+  // Density Scaling: Dense (Multi-paragraph, bullet lists, math sheets)
+  &--density-dense,
+  &--density-code {
+    font-size: 0.95rem;
+    line-height: 1.6;
+
+    &.rich-content--size-sm {
+      font-size: 0.85rem;
+      line-height: 1.45;
+    }
+
+    &.rich-content--size-lg,
+    &.rich-content--size-focus {
+      font-size: 1.05rem;
+      line-height: 1.65;
+    }
+  }
+
+  // Front vs Back face nuances
+  &--face-front {
+    color: var(--flashcard-text);
+  }
+
+  &--face-back {
+    color: var(--text-primary);
+  }
+
+  // Markdown Paragraphs
+  p {
+    color: inherit;
+    margin-bottom: $spacing-2;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  // Headings
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--text-primary);
+    margin-top: $spacing-3;
+    margin-bottom: $spacing-2;
+    line-height: 1.3;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  h1 {
+    font-size: 1.45em;
+  }
+
+  h2 {
+    font-size: 1.25em;
+  }
+
+  h3 {
+    font-size: 1.1em;
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-size: 1em;
+  }
+
+  // Strong & Bold
+  strong,
+  b {
+    font-weight: $font-weight-bold;
+    color: var(--text-primary);
+  }
+
+  // Emphasis & Italic
+  em,
+  i {
+    font-style: italic;
+  }
+
+  // Lists
+  ul,
+  ol {
+    margin: $spacing-2 0;
+    padding-left: 1.35rem;
+    text-align: left;
+    width: 100%;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    li {
+      margin-bottom: $spacing-1;
+      line-height: 1.5;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  // Blockquotes
+  blockquote {
+    margin: $spacing-2 0;
+    padding: $spacing-2 $spacing-3;
+    border-left: 3px solid var(--color-primary);
+    background-color: var(--bg-hover);
+    border-radius: 0 $radius-sm $radius-sm 0;
+    font-style: italic;
+    color: var(--text-secondary);
+    width: 100%;
+  }
+
+  // Tables
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: $spacing-3 0;
+    font-size: 0.9em;
+
+    th,
+    td {
+      border: 1px solid var(--border-light);
+      padding: $spacing-1 $spacing-2;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--bg-hover);
+      font-weight: $font-weight-semibold;
+      color: var(--text-primary);
+    }
+  }
+
+  // Inline Code
+  code:not(pre code) {
+    font-family: $font-family-mono;
+    font-size: 0.88em;
+    background-color: var(--bg-hover);
+    border: 1px solid var(--border-light);
+    padding: 0.15em 0.4em;
+    border-radius: $radius-xs;
+    color: var(--color-primary);
+    word-break: break-all;
+  }
+
+  // Preformatted Code Blocks
+  pre {
+    width: 100%;
+    max-width: 100%;
+    background-color: #0b1120;
+    color: #e2e8f0;
+    border-radius: $radius-md;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    padding: $spacing-3;
+    overflow-x: auto;
+    margin: $spacing-2 0;
+    text-align: left;
+    font-size: 0.825em;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+
+    code {
+      font-family: $font-family-mono;
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: inherit;
+      line-height: 1.5;
+    }
+  }
+
+  // KaTeX Mathematical Formula Styling
+  .katex {
+    font-size: 1.05em;
+    color: inherit;
+  }
+
+  .katex-display {
+    width: 100%;
+    max-width: 100%;
+    margin: $spacing-2 0;
+    padding: $spacing-1 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    text-align: center;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+
+    > .katex {
+      white-space: normal;
+      display: inline-block;
+      text-align: initial;
+    }
+  }
+
+  // Syntax Highlighting Tokens (highlight.js)
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-subst {
+    color: #f472b6;
+    font-weight: $font-weight-semibold;
+  }
+
+  .hljs-string,
+  .hljs-title,
+  .hljs-section,
+  .hljs-attribute,
+  .hljs-literal,
+  .hljs-template-tag,
+  .hljs-template-variable,
+  .hljs-type {
+    color: #38bdf8;
+  }
+
+  .hljs-comment,
+  .hljs-quote,
+  .hljs-deletion {
+    color: #94a3b8;
+    font-style: italic;
+  }
+
+  .hljs-number,
+  .hljs-regexp,
+  .hljs-link {
+    color: #fbbf24;
+  }
+
+  .hljs-built_in,
+  .hljs-bullet,
+  .hljs-symbol {
+    color: #a78bfa;
+  }
+
+  .hljs-function {
+    color: #6ee7b7;
+  }
+}

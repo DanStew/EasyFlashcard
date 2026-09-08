@@ -3,8 +3,10 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { WorkspaceProvider } from '@/context/WorkspaceContext';
 import { FolderExplorerView } from '@/views/FolderExplorerView';
+import { NotFoundView } from '@/views/NotFoundView';
 import { SetDetailView } from '@/views/SetDetailView';
 import { SetEditorView } from '@/views/SetEditorView';
+import { StudyFlashcardsView } from '@/views/StudyFlashcardsView';
 
 export function App() {
   const [globalSearch, setGlobalSearch] = useState('');
@@ -27,11 +29,13 @@ export function App() {
 
             {/* Sets & Flashcards */}
             <Route path="/set/:setId" element={<SetDetailView />} />
+            <Route path="/set/:setId/study" element={<StudyFlashcardsView />} />
+            <Route path="/study" element={<StudyFlashcardsView />} />
             <Route path="/set/:setId/edit" element={<SetEditorView />} />
             <Route path="/create-set" element={<SetEditorView />} />
 
             {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFoundView entityType="page" />} />
           </Routes>
         </AppLayout>
       </WorkspaceProvider>

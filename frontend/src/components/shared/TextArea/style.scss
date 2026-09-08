@@ -59,6 +59,11 @@
     line-height: 1.5;
     overflow-y: auto;
 
+    // Prevents mobile browser auto-zoom on focus (< 16px triggers iOS auto-zoom)
+    @media (max-width: $breakpoint-md) {
+      font-size: 16px;
+    }
+
     // Native dynamic height resizing
     &--auto-resize {
       resize: none;

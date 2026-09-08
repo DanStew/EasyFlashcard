@@ -26,6 +26,10 @@
     font-size: $font-size-xs;
     padding: $spacing-1 $spacing-3;
     height: 32px;
+
+    @media (pointer: coarse) {
+      min-height: 38px;
+    }
   }
 
   &--md {

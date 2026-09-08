@@ -122,3 +122,16 @@
     height: 0;
   }
 }
+
+// Touch Target Helper (Mobile Accessibility)
+@mixin touch-target($size: 44px) {
+  min-width: $size;
+  min-height: $size;
+}
+
+// Defensive text wrapper
+@mixin safe-text {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}

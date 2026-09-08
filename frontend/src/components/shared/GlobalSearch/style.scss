@@ -102,7 +102,7 @@
     top: calc(100% + 6px);
     left: 0;
     right: 0;
-    min-width: 380px;
+    width: min(calc(100vw - 32px), 380px);
     max-height: 480px;
     background-color: var(--bg-surface);
     border: 1px solid var(--border-medium);
@@ -115,8 +115,9 @@
     animation: searchDropdownFadeIn 0.15s ease-out;
 
     @media (max-width: $breakpoint-md) {
-      min-width: 300px;
-      right: -40px;
+      width: min(calc(100vw - 24px), 360px);
+      left: 50%;
+      transform: translateX(-50%);
     }
   }
 

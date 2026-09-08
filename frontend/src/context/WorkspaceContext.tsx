@@ -20,6 +20,10 @@ export interface WorkspaceContextType {
     folderId: string | null,
     fallbackCurrent?: { id: string; name: string } | null
   ) => BreadcrumbItem[];
+  isStudyModalOpen: boolean;
+  studyModalFolderId: string | null;
+  openStudyModal: (initialFolderId?: string | null) => void;
+  closeStudyModal: () => void;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -32,6 +36,18 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
   const [folderTree, setFolderTree] = useState<FolderTreeItem[]>([]);
   const [isLoadingTree, setIsLoadingTree] = useState(false);
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
+  const [isStudyModalOpen, setIsStudyModalOpen] = useState(false);
+  const [studyModalFolderId, setStudyModalFolderId] = useState<string | null>(null);
+
+  const openStudyModal = useCallback((initialFolderId?: string | null) => {
+    setStudyModalFolderId(initialFolderId ?? null);
+    setIsStudyModalOpen(true);
+  }, []);
+
+  const closeStudyModal = useCallback(() => {
+    setIsStudyModalOpen(false);
+    setStudyModalFolderId(null);
+  }, []);
 
   const refreshFolderTree = useCallback(async () => {
     try {
@@ -69,6 +85,10 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
         setActiveFolderId,
         refreshFolderTree,
         getBreadcrumbsForFolder,
+        isStudyModalOpen,
+        studyModalFolderId,
+        openStudyModal,
+        closeStudyModal,
       }}
     >
       {children}

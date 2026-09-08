@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
+  BookOpen,
   Edit2,
   Folder as FolderIcon,
   FolderPlus,
@@ -21,10 +22,12 @@ import { SetCard } from '@/components/shared/SetCard';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { useToast } from '@/hooks/useToast';
 import { useWorkspace } from '@/hooks/useWorkspace';
+import { ApiError } from '@/services/apiClient';
 import { folderService } from '@/services/folderService';
 import { setService } from '@/services/setService';
 import type { Folder } from '@/types/folder';
 import type { SetModel } from '@/types/set';
+import { NotFoundView } from '@/views/NotFoundView';
 import type { FolderExplorerViewProps } from './types';
 import {
   filterAndSortExplorerItems,
@@ -44,6 +47,7 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
     refreshFolderTree,
     setActiveFolderId,
     getBreadcrumbsForFolder,
+    openStudyModal,
   } = useWorkspace();
 
   const activeFolderId = propFolderId || params.folderId || null;
@@ -52,6 +56,7 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
   const [subfolders, setSubfolders] = useState<Folder[]>([]);
   const [sets, setSets] = useState<SetModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isNotFound, setIsNotFound] = useState(false);
 
   // Search, Sort, and View layout state
   const [searchQuery, setSearchQuery] = useState('');
@@ -79,6 +84,7 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
   const loadFolderData = useCallback(async () => {
     try {
       setIsLoading(true);
+      setIsNotFound(false);
       if (searchParam) {
         // Global search mode across whole library
         const [matchingFolders, matchingSets] = await Promise.all([
@@ -109,7 +115,11 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
         setSets(rootSets);
       }
     } catch (err: unknown) {
-      showError(err instanceof Error ? err.message : 'Failed to load folder contents');
+      if (err instanceof ApiError && err.isNotFound) {
+        setIsNotFound(true);
+      } else {
+        showError(err instanceof Error ? err.message : 'Failed to load folder contents');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -212,6 +222,10 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
 
   const isEmpty = !isLoading && subfolders.length === 0 && sets.length === 0;
 
+  if (isNotFound) {
+    return <NotFoundView entityType="folder" />;
+  }
+
   return (
     <div className="folder-explorer-view animate-fade-in">
       {/* Interactive Breadcrumbs Trail */}
@@ -291,6 +305,18 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
               }}
             >
               Clear Search
+            </Button>
+          )}
+
+          {displayedSets.length > 0 && (
+            <Button
+              variant="outline"
+              size="md"
+              leftIcon={<BookOpen size={16} />}
+              onClick={() => openStudyModal(activeFolderId)}
+              title="Study sets in this folder"
+            >
+              {activeFolderId ? 'Study Folder' : 'Study Sets'}
             </Button>
           )}
 
@@ -430,6 +456,7 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
                   set={set}
                   viewMode="list"
                   onView={() => navigate(`/set/${set.id}`)}
+                  onStudy={() => navigate(`/study?sets=${set.id}`)}
                   onEdit={() => navigate(`/set/${set.id}/edit`)}
                   onDelete={() => handleDeleteSet(set)}
                 />
@@ -494,6 +521,7 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
                     set={set}
                     viewMode="grid"
                     onView={() => navigate(`/set/${set.id}`)}
+                    onStudy={() => navigate(`/study?sets=${set.id}`)}
                     onEdit={() => navigate(`/set/${set.id}/edit`)}
                     onDelete={() => handleDeleteSet(set)}
                   />

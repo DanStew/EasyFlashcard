@@ -104,6 +104,10 @@
     display: none;
     align-items: center;
     gap: 2px;
+
+    @media (hover: none) {
+      display: flex;
+    }
   }
 
   &:hover &__actions {
@@ -112,10 +116,15 @@
 
   &__action-btn {
     @include flex-center;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: $radius-xs;
     color: var(--text-tertiary);
+
+    @media (pointer: coarse) {
+      min-width: 30px;
+      min-height: 30px;
+    }
 
     &:hover {
       background-color: var(--bg-surface-raised);

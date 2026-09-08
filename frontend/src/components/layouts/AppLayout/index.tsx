@@ -17,6 +17,7 @@ import { FolderTreeNav } from '@/components/shared/FolderTreeNav';
 import { GlobalSearch } from '@/components/shared/GlobalSearch';
 import { Input } from '@/components/shared/Input';
 import { Modal } from '@/components/shared/Modal';
+import { StudySetSelectorModal } from '@/components/shared/StudySetSelectorModal';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
 import { useToast } from '@/hooks/useToast';
 import { useWorkspace } from '@/hooks/useWorkspace';
@@ -35,7 +36,16 @@ export function AppLayout({
   const navigate = useNavigate();
   const location = useLocation();
   const { showSuccess, showError } = useToast();
-  const { folderTree, isLoadingTree, refreshFolderTree, activeFolderId } = useWorkspace();
+  const {
+    folderTree,
+    isLoadingTree,
+    refreshFolderTree,
+    activeFolderId,
+    isStudyModalOpen,
+    studyModalFolderId,
+    openStudyModal,
+    closeStudyModal,
+  } = useWorkspace();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -152,8 +162,8 @@ export function AppLayout({
             variant="outline"
             size="sm"
             leftIcon={<BookOpen size={16} />}
-            isComingSoon
-            tooltip="Study carousel & review mode coming soon"
+            onClick={() => openStudyModal()}
+            title="Launch Multi-Set Study Mode"
           >
             Study Mode
           </Button>
@@ -199,6 +209,19 @@ export function AppLayout({
               }}
             >
               New Folder
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              fullWidth
+              leftIcon={<BookOpen size={15} />}
+              onClick={() => {
+                if (window.innerWidth <= 1024) setIsSidebarOpen(false);
+                openStudyModal();
+              }}
+            >
+              Study Mode
             </Button>
           </div>
 
@@ -313,6 +336,13 @@ export function AppLayout({
           </div>
         </form>
       </Modal>
+
+      {/* Global Multi-Set Study Mode Selector Modal */}
+      <StudySetSelectorModal
+        isOpen={isStudyModalOpen}
+        onClose={closeStudyModal}
+        initialFolderId={studyModalFolderId}
+      />
     </div>
   );
 }

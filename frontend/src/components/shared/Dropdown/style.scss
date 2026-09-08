@@ -11,6 +11,7 @@
   top: calc(100% + #{$spacing-1});
   z-index: $z-index-dropdown;
   min-width: 180px;
+  max-width: calc(100vw - 32px);
   background-color: var(--bg-surface-raised);
   border: 1px solid var(--border-light);
   border-radius: $radius-lg;
@@ -42,6 +43,11 @@
   color: var(--text-primary);
   transition: background-color $transition-fast, color $transition-fast;
   text-align: left;
+
+  @media (pointer: coarse) {
+    padding-block: $spacing-3;
+    min-height: 40px;
+  }
 
   &:hover:not(&--disabled) {
     background-color: var(--bg-hover);

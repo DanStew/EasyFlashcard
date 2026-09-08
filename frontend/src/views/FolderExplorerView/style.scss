@@ -137,16 +137,16 @@
     border-radius: $radius-full;
   }
 
-  // Grid presentation
+  // Grid presentation with defensive minimum column sizes
   &__subfolders-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
     gap: $spacing-4;
   }
 
   &__sets-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
     gap: $spacing-5;
   }
 

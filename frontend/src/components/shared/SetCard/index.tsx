@@ -86,8 +86,7 @@ export function SetCard({
             size="sm"
             leftIcon={<Play size={13} />}
             onClick={() => onStudy ? onStudy(set) : undefined}
-            isComingSoon
-            tooltip="Study mode coming soon"
+            title="Study this set"
           >
             Study
           </Button>
@@ -174,8 +173,7 @@ export function SetCard({
             size="sm"
             leftIcon={<Play size={13} />}
             onClick={() => onStudy ? onStudy(set) : undefined}
-            isComingSoon
-            tooltip="Study carousel coming soon"
+            title="Study this set"
           >
             Study
           </Button>

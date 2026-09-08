@@ -37,9 +37,10 @@
   }
 
   &__title {
-    font-size: $font-size-3xl;
+    font-size: clamp($font-size-xl, 3.5vw, $font-size-3xl);
     font-weight: $font-weight-extrabold;
     letter-spacing: -0.02em;
+    word-break: break-word;
   }
 
   &__desc {
@@ -61,7 +62,7 @@
     flex-direction: column;
     align-items: center;
     gap: $spacing-4;
-    max-width: 680px;
+    max-width: min(100%, 820px);
     width: 100%;
     margin: 0 auto;
   }
@@ -96,6 +97,8 @@
 
   &__section-header {
     @include flex-between;
+    flex-wrap: wrap;
+    gap: $spacing-2;
   }
 
   &__section-title {
@@ -105,7 +108,7 @@
 
   &__cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
     gap: $spacing-5;
   }
 
@@ -116,8 +119,15 @@
     gap: $spacing-4;
   }
 
+  &__format-hint {
+    font-size: $font-size-xs;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+    margin-top: -$spacing-2;
+  }
+
   &__modal-actions {
-    margin-top: $spacing-6;
+    margin-top: $spacing-4;
     display: flex;
     justify-content: flex-end;
     gap: $spacing-3;

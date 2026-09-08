@@ -302,7 +302,7 @@
 // Content Area
 .app-content {
   flex: 1;
-  padding: $spacing-8;
+  padding: clamp(14px, 2.5vw, $spacing-8);
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
@@ -320,6 +320,7 @@
   display: flex;
   justify-content: flex-end;
   gap: $spacing-3;
+  flex-wrap: wrap;
 }
 
 // Mobile Overlay & Breakpoints
@@ -370,8 +371,32 @@
     z-index: #{$z-index-drawer - 1};
     animation: fadeIn $transition-fast forwards;
   }
+}
 
-  .app-content {
-    padding: $spacing-4;
+@include breakpoint-md {
+  .app-topbar {
+    padding: 0 $spacing-3;
+    gap: $spacing-2;
+
+    &__center {
+      display: none; // Hide topbar breadcrumbs on tablet/mobile to preserve search width
+    }
+
+    &__right {
+      display: none; // Hide non-essential Study Mode teaser button on small viewports
+    }
+
+    &__search {
+      max-width: none;
+      flex: 1;
+    }
+  }
+}
+
+@include breakpoint-xs {
+  .app-topbar {
+    &__brand-text {
+      display: none; // Show compact logo mark on very narrow phones
+    }
   }
 }

@@ -1,0 +1,182 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.study-header {
+  @include flex-between;
+  width: 100%;
+  padding: 10px $spacing-4;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: $radius-lg;
+  box-shadow: var(--shadow-sm);
+  transition: all $transition-normal;
+  gap: $spacing-3;
+
+  @include breakpoint-md {
+    flex-direction: column;
+    align-items: stretch;
+    gap: $spacing-3;
+  }
+
+  // Distraction-free Floating Focus Header
+  &--focus {
+    background-color: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-subtle);
+    border-radius: $radius-xl;
+    box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.45);
+    padding: $spacing-2 $spacing-4;
+    max-width: $header-width-focus;
+    margin: 0 auto;
+
+    [data-theme='light'] & {
+      background-color: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.12);
+    }
+
+    @include breakpoint-sm {
+      padding: 6px $spacing-3;
+      border-radius: $radius-lg;
+
+      .study-header__btn-text {
+        display: none;
+      }
+
+      .study-header__kbd {
+        display: none;
+      }
+    }
+  }
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  &__divider {
+    width: 1px;
+    height: 20px;
+    background-color: var(--border-light);
+    flex-shrink: 0;
+
+    @include breakpoint-xs {
+      display: none;
+    }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__title {
+    font-size: $font-size-md;
+    font-weight: $font-weight-bold;
+    color: var(--text-primary);
+    @include truncate;
+
+    &--focus {
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      color: var(--text-secondary);
+      max-width: clamp(120px, 20vw, 340px);
+    }
+  }
+
+  &__subtitle {
+    font-size: $font-size-xs;
+    color: var(--text-tertiary);
+  }
+
+  &__progress-badge {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    padding: 2px 8px;
+    background-color: var(--bg-surface-raised);
+    color: var(--color-primary);
+    border: 1px solid var(--border-light);
+    border-radius: $radius-full;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+
+    @media (max-width: 1040px) and (min-width: 769px) {
+      .study-header__btn-text {
+        display: none;
+      }
+    }
+
+    @include breakpoint-md {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    @include breakpoint-xs {
+      gap: 6px;
+
+      .study-header__btn-text {
+        display: none;
+      }
+    }
+  }
+
+  &__actions-divider {
+    width: 1px;
+    height: 18px;
+    background-color: var(--border-light);
+    margin: 0 2px;
+    flex-shrink: 0;
+
+    @include breakpoint-md {
+      display: none;
+    }
+  }
+
+  &__focus-btn {
+    border-color: var(--color-primary-subtle) !important;
+    color: var(--color-primary) !important;
+
+    &:hover {
+      background-color: var(--color-primary-subtle) !important;
+    }
+  }
+
+  &__exit-focus-btn {
+    font-weight: $font-weight-semibold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--bg-surface-raised) !important;
+  }
+
+  &__kbd {
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: $font-weight-bold;
+    padding: 1px 5px;
+    border-radius: $radius-xs;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    color: var(--text-tertiary);
+    line-height: 1.2;
+  }
+
+  &__btn-active {
+    background-color: var(--color-primary-subtle) !important;
+    color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+  }
+}

@@ -66,3 +66,14 @@ $breakpoint-md: 768px;
 $breakpoint-lg: 1024px;
 $breakpoint-xl: 1280px;
 $breakpoint-2xl: 1536px;
+
+// Fluid Card & Stage Dimensions
+$card-height-sm: clamp(160px, 24vh, 200px);
+$card-height-md: clamp(240px, 36vh, 320px);
+$card-height-lg: clamp(320px, 50vh, 520px);
+$card-height-focus: clamp(380px, 60vh, 660px);
+
+$stage-width-study: min(100%, 920px);
+$stage-width-focus: min(94vw, 1080px);
+$header-width-focus: min(94vw, 1040px);
+$container-study-view: min(94vw, 1140px);

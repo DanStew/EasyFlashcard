@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowDown, ArrowUp, Plus, Save, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/shared/Badge';
 import { Breadcrumbs } from '@/components/shared/Breadcrumbs';
 import { Button } from '@/components/shared/Button';
 import { Card } from '@/components/shared/Card';
@@ -10,11 +11,13 @@ import { Skeleton } from '@/components/shared/Skeleton';
 import { TextArea } from '@/components/shared/TextArea';
 import { useToast } from '@/hooks/useToast';
 import { useWorkspace } from '@/hooks/useWorkspace';
+import { ApiError } from '@/services/apiClient';
 import { flashcardService } from '@/services/flashcardService';
 import { folderService } from '@/services/folderService';
 import { setService } from '@/services/setService';
 import type { FlashcardCreate } from '@/types/flashcard';
 import type { Folder } from '@/types/folder';
+import { NotFoundView } from '@/views/NotFoundView';
 import type { CardDraft } from './types';
 import { createEmptyCardDraft, validateSetDraft } from './utils';
 import './style.scss';
@@ -41,10 +44,12 @@ export function SetEditorView() {
 
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isLoading, setIsLoading] = useState(isEditMode);
+  const [isNotFound, setIsNotFound] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
+      setIsNotFound(false);
       const allFolders = await folderService.listFolders();
       setFolders(allFolders);
 
@@ -72,7 +77,11 @@ export function SetEditorView() {
         }
       }
     } catch (err: unknown) {
-      showError(err instanceof Error ? err.message : 'Failed to load editor data');
+      if (err instanceof ApiError && err.isNotFound) {
+        setIsNotFound(true);
+      } else {
+        showError(err instanceof Error ? err.message : 'Failed to load editor data');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -200,6 +209,10 @@ export function SetEditorView() {
     );
   }
 
+  if (isNotFound) {
+    return <NotFoundView entityType="set" />;
+  }
+
   const baseBreadcrumbs = getBreadcrumbsForFolder(folderId || null);
   const breadcrumbs = [
     ...baseBreadcrumbs,
@@ -281,7 +294,12 @@ export function SetEditorView() {
       {/* Cards List Editor */}
       <section className="set-editor-view__cards-section">
         <div className="set-editor-view__cards-header">
-          <h2 className="set-editor-view__cards-title">Cards ({cards.length})</h2>
+          <div className="set-editor-view__cards-title-group">
+            <h2 className="set-editor-view__cards-title">Cards ({cards.length})</h2>
+            <Badge variant="subtle" size="sm">
+              Markdown & LaTeX Supported
+            </Badge>
+          </div>
           <Button
             type="button"
             variant="outline"
@@ -337,7 +355,7 @@ export function SetEditorView() {
             <div className="set-editor-view__row-fields">
               <TextArea
                 label="Term (Front)"
-                placeholder="Enter term or question..."
+                placeholder="Enter term or question (Supports Markdown & $inline$ LaTeX)..."
                 value={card.frontText}
                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
                   handleCardChange(index, 'frontText', e.target.value)
@@ -348,7 +366,7 @@ export function SetEditorView() {
 
               <TextArea
                 label="Definition (Back)"
-                placeholder="Enter definition or answer..."
+                placeholder="Enter definition or answer (Supports Markdown & $$block$$ equations)..."
                 value={card.backText}
                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
                   handleCardChange(index, 'backText', e.target.value)

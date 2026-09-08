@@ -15,11 +15,19 @@
 }
 
 html {
-  font-size: 16px;
+  font-size: 100%; // Respects user browser/OS font scaling preferences
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   color-scheme: light dark;
+}
+
+// Defensive media reset to prevent flex/grid container blowouts
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
 }
 
 // Sleek Global Custom Scrollbars (Main window and all scrollable containers)

@@ -29,6 +29,7 @@
   box-shadow: var(--shadow-xl);
   width: 100%;
   max-height: 90vh;
+  max-height: 90dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -54,28 +55,32 @@
   &--full {
     max-width: 95vw;
     height: 90vh;
+    height: 90dvh;
   }
 
   &__header {
     @include flex-between;
-    padding: $spacing-5 $spacing-6;
+    padding: clamp($spacing-3, 3vw, $spacing-5) clamp($spacing-4, 3vw, $spacing-6);
     border-bottom: 1px solid var(--border-light);
     background-color: var(--bg-surface-raised);
 
     &-titles {
       @include flex-col;
       gap: 2px;
+      min-width: 0;
     }
 
     &-title {
       font-size: $font-size-lg;
       font-weight: $font-weight-bold;
       color: var(--text-primary);
+      @include truncate;
     }
 
     &-subtitle {
       font-size: $font-size-xs;
       color: var(--text-secondary);
+      @include truncate;
     }
 
     &-close {
@@ -85,6 +90,12 @@
       border-radius: $radius-sm;
       color: var(--text-tertiary);
       transition: all $transition-fast;
+      flex-shrink: 0;
+
+      @media (pointer: coarse) {
+        min-width: 40px;
+        min-height: 40px;
+      }
 
       &:hover {
         background-color: var(--bg-hover);
@@ -94,20 +105,21 @@
   }
 
   &__body {
-    padding: $spacing-6;
+    padding: clamp($spacing-4, 3.5vw, $spacing-6);
     overflow-y: auto;
     @include custom-scrollbar;
     flex: 1;
   }
 
   &__footer {
-    padding: $spacing-4 $spacing-6;
+    padding: clamp($spacing-3, 3vw, $spacing-4) clamp($spacing-4, 3vw, $spacing-6);
     border-top: 1px solid var(--border-light);
     background-color: var(--bg-surface-raised);
     display: flex;
     align-items: center;
     justify-content: flex-end;
     gap: $spacing-3;
+    flex-wrap: wrap;
   }
 }
 
