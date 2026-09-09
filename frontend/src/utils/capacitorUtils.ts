@@ -11,8 +11,8 @@ export const STORAGE_KEY_API_BASE_URL = 'easyflashcard_api_base_url';
 export const EVENT_API_BASE_URL_CHANGED = 'easyflashcard_api_base_url_changed';
 
 export const DEFAULT_WEB_API_BASE_URL = '/api/v1';
-export const DEFAULT_ANDROID_LAN_BASE_URL = 'http://192.168.1.77:8000/api/v1';
 export const DEFAULT_ANDROID_EMULATOR_BASE_URL = 'http://10.0.2.2:8000/api/v1';
+export const DEFAULT_ANDROID_LAN_BASE_URL = 'http://192.168.1.100:8000/api/v1';
 
 /**
  * Check whether the application is running inside a native Capacitor wrapper (Android/iOS).
@@ -33,30 +33,66 @@ export function getPlatformName(): 'android' | 'ios' | 'web' {
 }
 
 /**
+ * Resolves the configured environment API base URL from build-time Vite environment variables.
+ * Checks `VITE_API_BASE_URL` or `VITE_CLOUD_RUN_BASE_URL`.
+ */
+export function getEnvironmentApiBaseUrl(): string {
+  const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_CLOUD_RUN_BASE_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+  return '';
+}
+
+/**
+ * Resolves the local LAN host address from environment variable or fallback.
+ */
+export function getLanApiBaseUrl(): string {
+  const lanUrl = import.meta.env.VITE_LAN_BASE_URL;
+  if (lanUrl && typeof lanUrl === 'string' && lanUrl.trim().length > 0) {
+    return lanUrl.trim().replace(/\/+$/, '');
+  }
+  return DEFAULT_ANDROID_LAN_BASE_URL;
+}
+
+/**
  * Retrieve the active API base URL.
  * Order of precedence:
- * 1. User-customized URL from local storage (allows on-device endpoint changes)
- * 2. Vite environment variable `VITE_API_BASE_URL`
- * 3. Default fallback: LAN IP for native Android, or relative `/api/v1` for web
+ * 1. User-customized URL from local storage (allows on-device endpoint changes via ServerConfigModal)
+ * 2. Build-time Vite environment variable `VITE_API_BASE_URL` or `VITE_CLOUD_RUN_BASE_URL` (inlined into APK bundle)
+ * 3. Default fallback: Emulator loopback address for native Android without env configuration, or relative `/api/v1` for web
  */
 export function getApiBaseUrl(): string {
   try {
     const customUrl = localStorage.getItem(STORAGE_KEY_API_BASE_URL);
     if (customUrl && customUrl.trim().length > 0) {
-      return customUrl.trim().replace(/\/+$/, '');
+      // If the stored URL is an obsolete local development IP (e.g. 192.168.x.x, 10.0.2.2, localhost),
+      // purge it from localStorage if an environment URL is configured so the app uses the build environment URL
+      const envUrl = getEnvironmentApiBaseUrl();
+      if (
+        envUrl &&
+        (customUrl.includes('192.168.') ||
+          customUrl.includes('10.0.2.2') ||
+          customUrl.includes('localhost') ||
+          customUrl.includes('127.0.0.1'))
+      ) {
+        localStorage.removeItem(STORAGE_KEY_API_BASE_URL);
+      } else {
+        return customUrl.trim().replace(/\/+$/, '');
+      }
     }
   } catch {
     // LocalStorage inaccessible
   }
 
-  const envUrl = import.meta.env.VITE_API_BASE_URL;
-  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
-    return envUrl.trim().replace(/\/+$/, '');
+  const envUrl = getEnvironmentApiBaseUrl();
+  if (envUrl) {
+    return envUrl;
   }
 
-  // Native Android shell needs absolute host address because localhost points to the phone itself
+  // Native Android shell fallback if no environment variable was supplied during build
   if (isCapacitorNative() && getPlatformName() === 'android') {
-    return DEFAULT_ANDROID_LAN_BASE_URL;
+    return DEFAULT_ANDROID_EMULATOR_BASE_URL;
   }
 
   return DEFAULT_WEB_API_BASE_URL;

@@ -161,6 +161,15 @@ export function AppLayout({
         </div>
 
         <div className="app-topbar__right">
+          <button
+            type="button"
+            className="app-topbar__toggle-btn"
+            onClick={() => setIsServerConfigOpen(true)}
+            title="Configure Backend Server Connection"
+            aria-label="Configure Backend Server Connection"
+          >
+            <Server size={18} />
+          </button>
           <Button
             variant="outline"
             size="sm"
