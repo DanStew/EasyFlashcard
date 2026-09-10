@@ -33,12 +33,14 @@ class FirestoreFolderRepository(IFolderRepository):
         return Folder.model_validate(data)
 
     async def list_all_user_folders(self, user_id: str) -> list[Folder]:
-        query = self.collection.where("user_id", "==", user_id)
+        query = self.collection.where(filter=firestore.FieldFilter("user_id", "==", user_id))
         docs = await query.get()
         return [Folder.model_validate(doc.to_dict()) for doc in docs if doc.to_dict()]
 
     async def list_by_parent(self, parent_id: str | None, user_id: str) -> list[Folder]:
-        query = self.collection.where("user_id", "==", user_id).where("parent_id", "==", parent_id)
+        query = self.collection.where(filter=firestore.FieldFilter("user_id", "==", user_id)).where(
+            filter=firestore.FieldFilter("parent_id", "==", parent_id)
+        )
         docs = await query.get()
         return [Folder.model_validate(doc.to_dict()) for doc in docs if doc.to_dict()]
 
@@ -106,11 +108,11 @@ class FirestoreSetRepository(ISetRepository):
         tag: str | None = None,
         search: str | None = None,
     ) -> list[FlashcardSet]:
-        query = self.collection.where("user_id", "==", user_id)
+        query = self.collection.where(filter=firestore.FieldFilter("user_id", "==", user_id))
         if root_only or folder_id == "root":
-            query = query.where("folder_id", "==", None)
+            query = query.where(filter=firestore.FieldFilter("folder_id", "==", None))
         elif folder_id is not None:
-            query = query.where("folder_id", "==", folder_id)
+            query = query.where(filter=firestore.FieldFilter("folder_id", "==", folder_id))
 
         docs = await query.get()
         results = [FlashcardSet.model_validate(doc.to_dict()) for doc in docs if doc.to_dict()]
@@ -131,7 +133,9 @@ class FirestoreSetRepository(ISetRepository):
         return results
 
     async def list_by_folder(self, folder_id: str, user_id: str) -> list[FlashcardSet]:
-        query = self.collection.where("user_id", "==", user_id).where("folder_id", "==", folder_id)
+        query = self.collection.where(filter=firestore.FieldFilter("user_id", "==", user_id)).where(
+            filter=firestore.FieldFilter("folder_id", "==", folder_id)
+        )
         docs = await query.get()
         return [FlashcardSet.model_validate(doc.to_dict()) for doc in docs if doc.to_dict()]
 
@@ -141,7 +145,9 @@ class FirestoreSetRepository(ISetRepository):
         results: list[FlashcardSet] = []
         for i in range(0, len(folder_ids), 30):
             chunk = folder_ids[i : i + 30]
-            query = self.collection.where("user_id", "==", user_id).where("folder_id", "in", chunk)
+            query = self.collection.where(
+                filter=firestore.FieldFilter("user_id", "==", user_id)
+            ).where(filter=firestore.FieldFilter("folder_id", "in", chunk))
             docs = await query.get()
             results.extend([FlashcardSet.model_validate(d.to_dict()) for d in docs if d.to_dict()])
         return results
@@ -217,9 +223,10 @@ class FirestoreFlashcardRepository(IFlashcardRepository):
         return Flashcard.model_validate(data)
 
     async def list_by_set(self, set_id: str) -> list[Flashcard]:
-        query = self.collection.where("set_id", "==", set_id).order_by("order_index")
+        query = self.collection.where(filter=firestore.FieldFilter("set_id", "==", set_id))
         docs = await query.get()
-        return [Flashcard.model_validate(doc.to_dict()) for doc in docs if doc.to_dict()]
+        cards = [Flashcard.model_validate(doc.to_dict()) for doc in docs if doc.to_dict()]
+        return sorted(cards, key=lambda c: c.order_index)
 
     async def update(self, card: Flashcard) -> Flashcard:
         doc_ref = self.collection.document(card.id)
@@ -263,7 +270,7 @@ class FirestoreFlashcardRepository(IFlashcardRepository):
         return total_deleted
 
     async def count_by_set(self, set_id: str) -> int:
-        query = self.collection.where("set_id", "==", set_id)
+        query = self.collection.where(filter=firestore.FieldFilter("set_id", "==", set_id))
         count_query: Any = query.count()
         results: Any = await count_query.get()
         return int(results[0][0].value)

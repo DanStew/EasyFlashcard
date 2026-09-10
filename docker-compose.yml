@@ -7,13 +7,10 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
-    environment:
-      - APP_NAME=EasyFlashcard API
-      - APP_VERSION=0.1.0
-      - ENVIRONMENT=production
-      - DEBUG=false
-      - STORAGE_BACKEND=memory
-      - DEFAULT_USER_ID=dev_user_123
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/service-account.json:/app/service-account.json:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
       interval: 10s

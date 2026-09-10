@@ -9,5 +9,8 @@ __pycache__
 tests
 .env
 .env.*
+*service-account*.json
+*sa-key*.json
+credentials.json
 .git
 .gitignore

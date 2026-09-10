@@ -54,6 +54,9 @@ htmlcov/
 .env
 .env.*
 !.env.example
+*service-account*.json
+*sa-key*.json
+credentials.json
 
 # Logs
 *.log
