@@ -2,7 +2,5 @@ node_modules
 dist
 .git
 .gitignore
-.env
-.env.*
 *.log
 android

@@ -1,11 +1,11 @@
 # Google Cloud Run Deployment Setup Guide
 
-This guide walks you through setting up automated deployments for the **EasyFlashcard** backend to **Google Cloud Run** in region `europe-west1` under GCP project `easyflashcard-492308`, authenticated securely through GitHub Actions using a dedicated Service Account.
+This guide walks you through setting up automated deployments for the **EasyFlashcard** backend to **Google Cloud Run** in region `europe-west1` under your GCP project (e.g. `<YOUR_GCP_PROJECT_ID>`), authenticated securely through GitHub Actions using a dedicated Service Account.
 
 ---
 
 ## 1. Prerequisites
-- Access to the Google Cloud Console for project: **`easyflashcard-492308`**
+- Access to the Google Cloud Console for your GCP project (e.g. `<YOUR_GCP_PROJECT_ID>`)
 - Google Cloud CLI (`gcloud`) installed locally (optional, or use Google Cloud Shell directly in the browser)
 
 ---
@@ -20,7 +20,7 @@ gcloud services enable \
   run.googleapis.com \
   artifactregistry.googleapis.com \
   iam.googleapis.com \
-  --project=easyflashcard-492308
+  --project=<YOUR_GCP_PROJECT_ID>
 ```
 
 ### Step 2.2: Create Artifact Registry Docker Repository
@@ -30,7 +30,7 @@ gcloud artifacts repositories create easyflashcard-docker \
   --repository-format=docker \
   --location=europe-west1 \
   --description="EasyFlashcard Docker repository for backend containers" \
-  --project=easyflashcard-492308
+  --project=<YOUR_GCP_PROJECT_ID>
 ```
 
 ### Step 2.3: Create Service Account for GitHub Actions
@@ -38,33 +38,33 @@ Create a dedicated deployment service account:
 ```bash
 gcloud iam service-accounts create github-actions-deployer \
   --display-name="GitHub Actions Deployer" \
-  --project=easyflashcard-492308
+  --project=<YOUR_GCP_PROJECT_ID>
 ```
 
 ### Step 2.4: Grant Minimum IAM Roles to Service Account
 Grant the 3 required roles to allow building, pushing, and deploying containers:
 ```bash
 # 1. Cloud Run Administrator (to create and update Cloud Run revisions)
-gcloud projects add-iam-policy-binding easyflashcard-492308 \
-  --member="serviceAccount:github-actions-deployer@easyflashcard-492308.iam.gserviceaccount.com" \
+gcloud projects add-iam-policy-binding <YOUR_GCP_PROJECT_ID> \
+  --member="serviceAccount:github-actions-deployer@<YOUR_GCP_PROJECT_ID>.iam.gserviceaccount.com" \
   --role="roles/run.admin"
 
 # 2. Artifact Registry Writer (to push container images)
-gcloud projects add-iam-policy-binding easyflashcard-492308 \
-  --member="serviceAccount:github-actions-deployer@easyflashcard-492308.iam.gserviceaccount.com" \
+gcloud projects add-iam-policy-binding <YOUR_GCP_PROJECT_ID> \
+  --member="serviceAccount:github-actions-deployer@<YOUR_GCP_PROJECT_ID>.iam.gserviceaccount.com" \
   --role="roles/artifactregistry.writer"
 
 # 3. Service Account User (allows Cloud Run to run as the compute service account)
-gcloud projects add-iam-policy-binding easyflashcard-492308 \
-  --member="serviceAccount:github-actions-deployer@easyflashcard-492308.iam.gserviceaccount.com" \
+gcloud projects add-iam-policy-binding <YOUR_GCP_PROJECT_ID> \
+  --member="serviceAccount:github-actions-deployer@<YOUR_GCP_PROJECT_ID>.iam.gserviceaccount.com" \
   --role="roles/iam.serviceAccountUser"
 ```
 
 ### Step 2.5: Generate and Download Service Account JSON Key
 ```bash
 gcloud iam service-accounts keys create sa-key.json \
-  --iam-account=github-actions-deployer@easyflashcard-492308.iam.gserviceaccount.com \
-  --project=easyflashcard-492308
+  --iam-account=github-actions-deployer@<YOUR_GCP_PROJECT_ID>.iam.gserviceaccount.com \
+  --project=<YOUR_GCP_PROJECT_ID>
 
 # View the JSON key to copy into GitHub
 cat sa-key.json
@@ -81,7 +81,7 @@ In your GitHub repository:
 
 | Secret Name | Exact Value | Description |
 | :--- | :--- | :--- |
-| `GCP_PROJECT_ID` | `easyflashcard-492308` | Your GCP Project ID |
+| `GCP_PROJECT_ID` | `<YOUR_GCP_PROJECT_ID>` | Your GCP Project ID |
 | `GCP_SA_KEY` | *(Paste entire contents of `sa-key.json`)* | Service Account JSON credentials |
 | `GCP_REGION` | `europe-west1` | Target Cloud Run & Artifact Registry region |
 | `GCP_SERVICE_NAME` | `easyflashcard-backend` | Cloud Run service identifier |

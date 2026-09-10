@@ -105,7 +105,7 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --port 8000 \
-            --set-env-vars "ENVIRONMENT=production,STORAGE_BACKEND=memory,APP_NAME=EasyFlashcard API" \
+            --set-env-vars "ENVIRONMENT=production,STORAGE_BACKEND=firestore,FIREBASE_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},FIRESTORE_DATABASE=(default),APP_NAME=EasyFlashcard API" \
             --format 'value(status.url)' > service_url.txt
 
           SERVICE_URL=$(cat service_url.txt)

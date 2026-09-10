@@ -33,7 +33,10 @@ def get_folder_repository() -> IFolderRepository:
 
         from app.repositories.firestore_repo import FirestoreFolderRepository
 
-        db = firestore.AsyncClient(project=settings.firebase_project_id)
+        db = firestore.AsyncClient(
+            project=settings.firebase_project_id,
+            database=settings.firestore_database,
+        )
         return FirestoreFolderRepository(db)
     return _in_memory_folder_repo
 
@@ -45,7 +48,10 @@ def get_set_repository() -> ISetRepository:
 
         from app.repositories.firestore_repo import FirestoreSetRepository
 
-        db = firestore.AsyncClient(project=settings.firebase_project_id)
+        db = firestore.AsyncClient(
+            project=settings.firebase_project_id,
+            database=settings.firestore_database,
+        )
         return FirestoreSetRepository(db)
     return _in_memory_set_repo
 
@@ -57,7 +63,10 @@ def get_flashcard_repository() -> IFlashcardRepository:
 
         from app.repositories.firestore_repo import FirestoreFlashcardRepository
 
-        db = firestore.AsyncClient(project=settings.firebase_project_id)
+        db = firestore.AsyncClient(
+            project=settings.firebase_project_id,
+            database=settings.firestore_database,
+        )
         return FirestoreFlashcardRepository(db)
     return _in_memory_flashcard_repo
 

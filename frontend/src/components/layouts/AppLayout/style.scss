@@ -257,6 +257,51 @@
       font-weight: $font-weight-semibold;
       color: var(--text-primary);
       line-height: 1.2;
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &-email {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  &__auth-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 11px;
+    color: var(--color-primary);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.15s ease, opacity 0.15s ease;
+
+    &:hover:not(:disabled) {
+      color: var(--color-primary-hover);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+
+    &--signout {
+      color: var(--text-tertiary);
+      &:hover:not(:disabled) {
+        color: #ef4444;
+      }
     }
   }
 

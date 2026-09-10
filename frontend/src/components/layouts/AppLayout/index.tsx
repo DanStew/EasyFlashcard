@@ -4,13 +4,17 @@ import {
   BookOpen,
   FolderPlus,
   Home,
+  LogIn,
+  LogOut,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
   RefreshCw,
   Server,
   Sparkles,
+  User as UserIcon,
 } from 'lucide-react';
+import { AuthModal } from '@/components/shared/AuthModal';
 import { Badge } from '@/components/shared/Badge';
 import { Breadcrumbs } from '@/components/shared/Breadcrumbs';
 import { Button } from '@/components/shared/Button';
@@ -21,6 +25,8 @@ import { Modal } from '@/components/shared/Modal';
 import { ServerConfigModal } from '@/components/shared/ServerConfigModal';
 import { StudySetSelectorModal } from '@/components/shared/StudySetSelectorModal';
 import { ThemeToggle } from '@/components/shared/ThemeToggle';
+import { getUserDisplayName, getUserInitial } from '@/context/authUtils';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { useWorkspace } from '@/hooks/useWorkspace';
 import { devService } from '@/services/devService';
@@ -48,6 +54,15 @@ export function AppLayout({
     openStudyModal,
     closeStudyModal,
   } = useWorkspace();
+
+  const {
+    currentUser,
+    isAuthenticated,
+    logout,
+    isAuthModalOpen,
+    openAuthModal,
+    closeAuthModal,
+  } = useAuth();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -77,6 +92,17 @@ export function AppLayout({
       showError(err instanceof Error ? err.message : 'Failed to seed demo data');
     } finally {
       setIsSeeding(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      showSuccess('Signed out successfully.');
+      await refreshFolderTree();
+      navigate('/');
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : 'Failed to sign out');
     }
   };
 
@@ -161,6 +187,18 @@ export function AppLayout({
         </div>
 
         <div className="app-topbar__right">
+          {!isAuthenticated && (
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<LogIn size={16} />}
+              onClick={openAuthModal}
+              title="Sign in with Email"
+            >
+              Sign In
+            </Button>
+          )}
+
           <button
             type="button"
             className="app-topbar__toggle-btn"
@@ -285,9 +323,43 @@ export function AppLayout({
           {/* Sidebar Footer */}
           <div className="app-sidebar__footer">
             <div className="app-sidebar__user-badge">
-              <div className="app-sidebar__user-badge-avatar">D</div>
+              <div className="app-sidebar__user-badge-avatar">
+                {isAuthenticated ? getUserInitial(currentUser) : <UserIcon size={14} />}
+              </div>
               <div className="app-sidebar__user-badge-info">
-                <span className="app-sidebar__user-badge-label">Developer Mode</span>
+                <span className="app-sidebar__user-badge-label" title={getUserDisplayName(currentUser)}>
+                  {getUserDisplayName(currentUser)}
+                </span>
+                {isAuthenticated && currentUser?.email && (
+                  <span className="app-sidebar__user-badge-email" title={currentUser.email}>
+                    {currentUser.email}
+                  </span>
+                )}
+                {isAuthenticated ? (
+                  <button
+                    type="button"
+                    className="app-sidebar__auth-action-btn app-sidebar__auth-action-btn--signout"
+                    onClick={handleSignOut}
+                    title="Sign out of your account"
+                  >
+                    <LogOut size={11} />
+                    <span>Sign Out</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="app-sidebar__auth-action-btn"
+                    onClick={openAuthModal}
+                    title="Sign in with your email account"
+                  >
+                    <LogIn size={11} />
+                    <span>Sign In</span>
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="app-sidebar__footer-actions">
+              {!isAuthenticated && (
                 <button
                   type="button"
                   className="app-sidebar__seed-btn"
@@ -296,11 +368,9 @@ export function AppLayout({
                   title="Prepopulate sample folders, sets, and flashcards"
                 >
                   <RefreshCw className={isSeeding ? 'app-sidebar__seed-icon--spin' : ''} size={11} />
-                  <span>{isSeeding ? 'Seeding...' : 'Seed Data'}</span>
+                  <span>{isSeeding ? 'Seeding...' : 'Seed'}</span>
                 </button>
-              </div>
-            </div>
-            <div className="app-sidebar__footer-actions">
+              )}
               <button
                 type="button"
                 className="app-sidebar__server-btn"
@@ -320,6 +390,12 @@ export function AppLayout({
           <main className="app-content">{children}</main>
         </div>
       </div>
+
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+      />
 
       {/* Create Folder Modal */}
       <Modal

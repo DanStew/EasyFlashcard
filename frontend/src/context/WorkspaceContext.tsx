@@ -8,6 +8,7 @@ import {
 import type { BreadcrumbItem } from '@/components/shared/Breadcrumbs/types';
 import { folderService } from '@/services/folderService';
 import type { FolderTreeItem } from '@/types/folder';
+import { useAuth } from '@/hooks/useAuth';
 import { buildBreadcrumbTrail, findFolderAncestors } from './workspaceUtils';
 
 export interface WorkspaceContextType {
@@ -33,6 +34,7 @@ export interface WorkspaceProviderProps {
 }
 
 export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
+  const { currentUser, isAuthenticated } = useAuth();
   const [folderTree, setFolderTree] = useState<FolderTreeItem[]>([]);
   const [isLoadingTree, setIsLoadingTree] = useState(false);
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
@@ -50,6 +52,10 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
   }, []);
 
   const refreshFolderTree = useCallback(async () => {
+    if (!isAuthenticated) {
+      setFolderTree([]);
+      return;
+    }
     try {
       setIsLoadingTree(true);
       const tree = await folderService.getFolderTree();
@@ -59,11 +65,15 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
     } finally {
       setIsLoadingTree(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    refreshFolderTree();
-  }, [refreshFolderTree]);
+    if (isAuthenticated) {
+      refreshFolderTree();
+    } else {
+      setFolderTree([]);
+    }
+  }, [refreshFolderTree, isAuthenticated, currentUser]);
 
   const getBreadcrumbsForFolder = useCallback(
     (folderId: string | null, fallbackCurrent?: { id: string; name: string } | null): BreadcrumbItem[] => {

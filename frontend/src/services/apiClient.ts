@@ -5,18 +5,23 @@
 import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
 import { getApiBaseUrl, EVENT_API_BASE_URL_CHANGED } from '@/utils/capacitorUtils';
 
-// Storage key for user ID in dev/offline mode
+import { auth } from './firebase';
+
+// Storage key for user ID in local storage
 const USER_ID_KEY = 'easyflashcard_user_id';
-const DEFAULT_USER_ID = 'dev_user_123';
 
 /**
  * Returns the currently active user identifier for request headers.
+ * Returns Firebase Auth UID when authenticated.
  */
 export function getCurrentUserId(): string {
+  if (auth?.currentUser?.uid) {
+    return auth.currentUser.uid;
+  }
   try {
-    return localStorage.getItem(USER_ID_KEY) || DEFAULT_USER_ID;
+    return localStorage.getItem(USER_ID_KEY) || '';
   } catch {
-    return DEFAULT_USER_ID;
+    return '';
   }
 }
 
@@ -49,9 +54,23 @@ if (typeof window !== 'undefined') {
 
 // Request interceptor to attach user ID header and ensure latest base URL
 apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  async (config: InternalAxiosRequestConfig) => {
     config.baseURL = getApiBaseUrl();
-    config.headers.set('X-User-ID', getCurrentUserId());
+    const userId = getCurrentUserId();
+    if (userId) {
+      config.headers.set('X-User-ID', userId);
+    }
+
+    if (auth?.currentUser) {
+      try {
+        const token = await auth.currentUser.getIdToken();
+        if (token) {
+          config.headers.set('Authorization', `Bearer ${token}`);
+        }
+      } catch {
+        // ID token refresh failure
+      }
+    }
     return config;
   },
   (error: unknown) => Promise.reject(error)
