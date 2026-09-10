@@ -1,0 +1,25 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.new-drive-folder-modal {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+
+  &__hint {
+    font-size: $font-size-sm;
+    color: var(--text-secondary);
+    margin: 0;
+
+    strong {
+      color: var(--text-primary);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-3;
+    margin-top: $spacing-2;
+  }
+}

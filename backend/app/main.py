@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routers import (
     dev_router,
+    documents_router,
     flashcards_router,
     folders_router,
     health_router,
@@ -90,6 +91,7 @@ def create_app() -> FastAPI:
     app.include_router(folders_router)
     app.include_router(sets_router)
     app.include_router(flashcards_router)
+    app.include_router(documents_router)
     app.include_router(search_router)
     app.include_router(dev_router)
 

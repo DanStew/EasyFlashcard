@@ -71,6 +71,19 @@ apiClient.interceptors.request.use(
         // ID token refresh failure
       }
     }
+
+    // Attach Google Drive OAuth access token if present
+    try {
+      const gdriveToken =
+        localStorage.getItem('easyflashcard_gdrive_access_token') ||
+        sessionStorage.getItem('easyflashcard_gdrive_access_token');
+      if (gdriveToken) {
+        config.headers.set('X-Google-Drive-Token', gdriveToken);
+      }
+    } catch {
+      // Ignore
+    }
+
     return config;
   },
   (error: unknown) => Promise.reject(error)

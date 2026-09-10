@@ -1,6 +1,15 @@
 """Data models and schemas package."""
 
 from app.models.common import CamelModel, TimestampMixin, generate_uuid, utc_now
+from app.models.document import (
+    CreateSubfolderRequest,
+    Document,
+    DriveBreadcrumb,
+    DriveFolderContentsResponse,
+    DriveFolderItem,
+    MoveItemRequest,
+    RenameItemRequest,
+)
 from app.models.flashcard import (
     CardFace,
     DocumentReference,
@@ -28,7 +37,12 @@ from app.models.set import (
 __all__ = [
     "CamelModel",
     "CardFace",
+    "CreateSubfolderRequest",
+    "Document",
     "DocumentReference",
+    "DriveBreadcrumb",
+    "DriveFolderContentsResponse",
+    "DriveFolderItem",
     "Flashcard",
     "FlashcardBulkCreate",
     "FlashcardCreate",
@@ -41,6 +55,8 @@ __all__ = [
     "FolderResponse",
     "FolderTreeItem",
     "FolderUpdate",
+    "MoveItemRequest",
+    "RenameItemRequest",
     "SetCreate",
     "SetResponse",
     "SetUpdate",

@@ -33,7 +33,15 @@ export function getFirebaseAuthErrorMessage(error: unknown): string {
     case 'auth/user-disabled':
       return 'This user account has been disabled.';
     case 'auth/operation-not-allowed':
-      return 'Email/Password sign-in is not enabled in the Firebase Console.';
+      return 'Google or Email sign-in is not enabled in the Firebase Console.';
+    case 'auth/popup-closed-by-user':
+      return 'Sign-in popup was closed before completing authentication.';
+    case 'auth/cancelled-popup-request':
+      return 'Sign-in request was cancelled. Please try again.';
+    case 'auth/popup-blocked':
+      return 'Sign-in popup was blocked by your browser. Please allow popups for this site.';
+    case 'auth/account-exists-with-different-credential':
+      return 'An account already exists with the same email address using a different sign-in method.';
     case 'auth/api-key-not-valid':
     case 'auth/api-key-not-valid.-please-pass-a-valid-api-key.':
       return 'Firebase API key is invalid or Identity Toolkit API is not enabled in GCP Console.';

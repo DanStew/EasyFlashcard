@@ -2,10 +2,16 @@
 
 import asyncio
 
+from app.models.document import Document
 from app.models.flashcard import Flashcard
 from app.models.folder import Folder
 from app.models.set import FlashcardSet
-from app.repositories.base import IFlashcardRepository, IFolderRepository, ISetRepository
+from app.repositories.base import (
+    IDocumentRepository,
+    IFlashcardRepository,
+    IFolderRepository,
+    ISetRepository,
+)
 
 
 class InMemoryFolderRepository(IFolderRepository):
@@ -253,3 +259,82 @@ class InMemoryFlashcardRepository(IFlashcardRepository):
     def clear(self) -> None:
         """Utility for test suites to reset state."""
         self._cards.clear()
+
+
+class InMemoryDocumentRepository(IDocumentRepository):
+    """In-memory implementation of IDocumentRepository."""
+
+    def __init__(self) -> None:
+        self._documents: dict[str, Document] = {}
+        self._lock = asyncio.Lock()
+
+    async def create(self, doc: Document) -> Document:
+        async with self._lock:
+            self._documents[doc.id] = doc.model_copy(deep=True)
+            return doc.model_copy(deep=True)
+
+    async def get_by_id(self, doc_id: str, user_id: str) -> Document | None:
+        async with self._lock:
+            doc = self._documents.get(doc_id)
+            if doc and doc.user_id == user_id:
+                return doc.model_copy(deep=True)
+            return None
+
+    async def get_by_drive_file_id(self, drive_file_id: str, user_id: str) -> Document | None:
+        async with self._lock:
+            for doc in self._documents.values():
+                if doc.drive_file_id == drive_file_id and doc.user_id == user_id:
+                    return doc.model_copy(deep=True)
+            return None
+
+    async def list_by_user(self, user_id: str) -> list[Document]:
+        async with self._lock:
+            docs = [
+                d.model_copy(deep=True)
+                for d in self._documents.values()
+                if d.user_id == user_id
+            ]
+            docs.sort(key=lambda d: d.created_at, reverse=True)
+            return docs
+
+    async def list_by_drive_folder(
+        self, folder_id: str | None, user_id: str
+    ) -> list[Document]:
+        async with self._lock:
+            docs = [
+                d.model_copy(deep=True)
+                for d in self._documents.values()
+                if d.user_id == user_id and d.drive_folder_id == folder_id
+            ]
+            docs.sort(key=lambda d: d.created_at, reverse=True)
+            return docs
+
+    async def update(self, doc: Document) -> Document:
+        async with self._lock:
+            self._documents[doc.id] = doc.model_copy(deep=True)
+            return doc.model_copy(deep=True)
+
+    async def delete(self, doc_id: str, user_id: str) -> bool:
+        async with self._lock:
+            doc = self._documents.get(doc_id)
+            if doc and doc.user_id == user_id:
+                del self._documents[doc_id]
+                return True
+            return False
+
+    async def delete_by_drive_file_id(self, drive_file_id: str, user_id: str) -> bool:
+        async with self._lock:
+            target_id = None
+            for doc_id, doc in self._documents.items():
+                if doc.drive_file_id == drive_file_id and doc.user_id == user_id:
+                    target_id = doc_id
+                    break
+            if target_id:
+                del self._documents[target_id]
+                return True
+            return False
+
+    def clear(self) -> None:
+        """Utility for test suites to reset state."""
+        self._documents.clear()
+

@@ -15,6 +15,7 @@ desktop.ini
 
 # IDEs and Editors
 # ------------------------------------------------------------------------------
+.agents/
 .idea/
 .vscode/*
 !.vscode/settings.json
@@ -34,6 +35,11 @@ desktop.ini
 !.env.example
 !*.env.example
 *.local
+credentials.json
+gcp-oauth.keys.json
+token.json
+.gdrive-token.json
+*token.json
 
 # Logs and Diagnostics
 # ------------------------------------------------------------------------------

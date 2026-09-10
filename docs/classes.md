@@ -4,21 +4,40 @@ This document describes the core backend data models (FastAPI & Firestore) and c
 
 ---
 
-## 1. Document Management Models
+## 1. Document & Google Drive Management Models
 
 ### `Document`
 
-Represents an uploaded source file (e.g., PDF, PPTX, Image) used for AI flashcard generation and in-app reference viewing.
+Represents an uploaded/linked source file (e.g., PDF, PPTX, Doc, Image) stored within the user's isolated `EasyFlashcard` Google Drive folder hierarchy.
 
-| Attribute    | Type            | Description                                                       |
-| :----------- | :-------------- | :---------------------------------------------------------------- |
-| `id`         | `str`           | Unique document identifier (UUID / Firestore Document ID).        |
-| `userId`     | `str`           | ID of the user who owns the document.                             |
-| `fileName`   | `str`           | Original file name (e.g., `lecture_04_biology.pdf`).              |
-| `fileType`   | `str`           | MIME type of the document (e.g., `application/pdf`, `image/png`). |
-| `storageUrl` | `str`           | Google Cloud Storage URI where the raw document is stored.        |
-| `pageCount`  | `Optional[int]` | Total number of pages/slides in the document.                     |
-| `createdAt`  | `datetime`      | Timestamp when the document was uploaded.                         |
+| Attribute        | Type            | Description                                                            |
+| :--------------- | :-------------- | :--------------------------------------------------------------------- |
+| `id`             | `str`           | Unique document identifier (UUID / Firestore Document ID).             |
+| `userId`         | `str`           | ID of the user who owns the document.                                  |
+| `name`           | `str`           | Original file name (e.g., `lecture_04_biology.pdf`).                   |
+| `mimeType`       | `str`           | MIME type of the document (e.g., `application/pdf`, `image/png`).      |
+| `driveFileId`    | `str`           | Google Drive File ID.                                                  |
+| `driveFolderId`  | `Optional[str]` | Parent Google Drive Folder ID.                                         |
+| `webViewLink`    | `Optional[str]` | Google Drive preview/viewer URL.                                       |
+| `webContentLink` | `Optional[str]` | Direct download link for the file.                                     |
+| `thumbnailLink`  | `Optional[str]` | Thumbnail preview image URL if available.                              |
+| `sizeBytes`      | `Optional[int]` | File size in bytes.                                                    |
+| `pageCount`      | `Optional[int]` | Total number of pages/slides in the document.                          |
+| `linkedSetIds`   | `List[str]`     | IDs of Flashcard Sets referencing this document.                       |
+| `createdAt`      | `datetime`      | Timestamp when the document was uploaded.                              |
+| `updatedAt`      | `datetime`      | Timestamp when metadata was last updated.                              |
+
+### `DriveFolderItem`
+
+Represents a subfolder within the `EasyFlashcard` folder hierarchy in Google Drive.
+
+| Attribute   | Type            | Description                                              |
+| :---------- | :-------------- | :------------------------------------------------------- |
+| `id`        | `str`           | Google Drive folder identifier.                          |
+| `name`      | `str`           | Name of the folder.                                      |
+| `parentId`  | `Optional[str]` | Parent Google Drive folder ID (`None` for root).         |
+| `mimeType`  | `str`           | Folder MIME type (`application/vnd.google-apps.folder`). |
+| `createdAt` | `datetime`      | Folder creation timestamp.                               |
 
 ### `DocumentReference`
 

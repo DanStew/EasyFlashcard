@@ -5,6 +5,7 @@
 import { useState, type FormEvent } from 'react';
 import { AlertCircle, Lock, LogIn, Mail, UserPlus } from 'lucide-react';
 import { Button } from '@/components/shared/Button';
+import { GoogleIcon } from '@/components/shared/GoogleIcon';
 import { Input } from '@/components/shared/Input';
 import { Modal } from '@/components/shared/Modal';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,13 +19,14 @@ export function AuthModal({
   onClose,
   initialMode = 'login',
 }: AuthModalProps) {
-  const { login, register, authError, clearAuthError } = useAuth();
-  const { showSuccess } = useToast();
+  const { login, register, loginWithGoogle, authError, clearAuthError } = useAuth();
+  const { showSuccess, showError } = useToast();
 
   const [mode, setMode] = useState<AuthTabMode>(initialMode);
   const [form, setForm] = useState(getInitialAuthFormState);
   const [localError, setLocalError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   const handleTabChange = (newMode: AuthTabMode) => {
     setMode(newMode);
@@ -36,6 +38,23 @@ export function AuthModal({
     setForm((prev) => ({ ...prev, [field]: value }));
     if (localError) setLocalError(null);
     if (authError) clearAuthError();
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsGoogleSubmitting(true);
+      setLocalError(null);
+      clearAuthError();
+      await loginWithGoogle();
+      showSuccess('Signed in with Google successfully!');
+      onClose();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Google sign-in failed';
+      setLocalError(msg);
+      showError(msg);
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -82,6 +101,20 @@ export function AuthModal({
       size="sm"
     >
       <div className="auth-modal">
+        {/* One-Click Google Sign-In */}
+        <div className="auth-modal__google-section">
+          <button
+            type="button"
+            className="auth-modal__google-btn"
+            onClick={handleGoogleSignIn}
+            disabled={isGoogleSubmitting || isSubmitting}
+          >
+            <GoogleIcon size={20} />
+            <span>{isGoogleSubmitting ? 'Signing in with Google...' : 'Continue with Google'}</span>
+          </button>
+          <div className="auth-modal__divider">or with email</div>
+        </div>
+
         {/* Mode Selector Tabs */}
         <div className="auth-modal__tabs" role="tablist">
           <button

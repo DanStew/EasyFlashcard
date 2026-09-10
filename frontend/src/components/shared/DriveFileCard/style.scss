@@ -1,0 +1,283 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.drive-file-card {
+  position: relative;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: $radius-xl;
+  cursor: pointer;
+  transition: all $transition-normal;
+  user-select: none;
+  overflow: hidden;
+
+  &:hover {
+    border-color: var(--border-focus);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  &:hover,
+  &:focus-within {
+    z-index: 10;
+  }
+
+  // File Icon Category Variants
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &--pdf {
+      color: #ef476f;
+      background: rgba(239, 71, 111, 0.12);
+    }
+
+    &--doc {
+      color: #4361ee;
+      background: rgba(67, 97, 238, 0.12);
+    }
+
+    &--slide {
+      color: #f77f00;
+      background: rgba(247, 127, 0, 0.12);
+    }
+
+    &--sheet {
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.12);
+    }
+
+    &--image {
+      color: #06d6a0;
+      background: rgba(6, 214, 160, 0.12);
+    }
+
+    &--text {
+      color: #8b5cf6;
+      background: rgba(139, 92, 246, 0.12);
+    }
+
+    &--generic {
+      color: var(--text-secondary);
+      background: var(--bg-surface-sunken);
+    }
+  }
+
+  // Grid Layout Mode (Google Drive Style Card)
+  &--grid {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 200px;
+
+    .drive-file-card__preview-stage {
+      height: 96px;
+      width: 100%;
+      background: var(--bg-surface-sunken);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background $transition-fast;
+    }
+
+    &:hover .drive-file-card__preview-stage {
+      background: rgba(99, 102, 241, 0.04);
+    }
+
+    .drive-file-card__preview-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: $radius-lg;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sm);
+      transition: transform $transition-bounce;
+    }
+
+    &:hover .drive-file-card__preview-icon-box {
+      transform: scale(1.1);
+    }
+
+    .drive-file-card__type-badge {
+      position: absolute;
+      top: $spacing-2;
+      left: $spacing-3;
+      font-size: 10px;
+      font-weight: $font-weight-bold;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 2px 6px;
+      border-radius: $radius-xs;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-xs);
+    }
+
+    .drive-file-card__content {
+      padding: $spacing-3 $spacing-4;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: $spacing-1;
+    }
+
+    .drive-file-card__name {
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      color: var(--text-primary);
+      line-height: 1.35;
+      @include line-clamp(2);
+      min-height: 38px;
+    }
+
+    .drive-file-card__meta-row {
+      display: flex;
+      align-items: center;
+      gap: $spacing-2;
+      font-size: $font-size-xs;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+
+    .drive-file-card__footer {
+      padding: $spacing-2 $spacing-4 $spacing-3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: $spacing-2;
+      border-top: 1px solid var(--border-subtle);
+      margin-top: auto;
+    }
+  }
+
+  // List Layout Mode
+  &--list {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $spacing-3 $spacing-4;
+    gap: $spacing-4;
+    border-radius: $radius-md;
+    border-bottom: 1px solid var(--border-subtle);
+
+    .drive-file-card__left {
+      display: flex;
+      align-items: center;
+      gap: $spacing-3;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .drive-file-card__list-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: $radius-sm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .drive-file-card__info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .drive-file-card__name {
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+      color: var(--text-primary);
+      @include truncate;
+      max-width: 320px;
+    }
+
+    .drive-file-card__meta-row {
+      display: flex;
+      align-items: center;
+      gap: $spacing-2;
+      font-size: $font-size-xs;
+      color: var(--text-tertiary);
+    }
+
+    .drive-file-card__list-actions {
+      display: flex;
+      align-items: center;
+      gap: $spacing-2;
+      flex-shrink: 0;
+    }
+  }
+
+  // Linked sets pill
+  &__sets-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: $font-weight-semibold;
+    color: var(--color-primary);
+    background: var(--color-primary-subtle);
+    padding: 2px 6px;
+    border-radius: $radius-sm;
+  }
+
+  &__ready-text {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: $font-weight-medium;
+  }
+
+  &__actions-group {
+    display: flex;
+    align-items: center;
+    gap: $spacing-1;
+  }
+
+  // Generate Flashcards Quick Button
+  &__generate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color-primary-subtle);
+    color: var(--color-primary);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: $radius-sm;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: var(--accent-gradient);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+  }
+
+  &__menu-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: $radius-sm;
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+  }
+}

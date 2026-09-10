@@ -5,6 +5,8 @@ import { ProtectedRoute } from '@/components/shared/ProtectedRoute';
 import { AuthProvider } from '@/context/AuthContext';
 import { WorkspaceProvider } from '@/context/WorkspaceContext';
 import { useCapacitorMobile } from '@/hooks/useCapacitorMobile';
+import { AIStudioView } from '@/views/AIStudioView';
+import { DocumentDetailView } from '@/views/DocumentDetailView';
 import { FolderExplorerView } from '@/views/FolderExplorerView';
 import { LoginView } from '@/views/LoginView';
 import { NotFoundView } from '@/views/NotFoundView';
@@ -29,6 +31,13 @@ function AuthenticatedApp({ globalSearch, onSearchChange }: AuthenticatedAppProp
             {/* Unified Workspace & Library */}
             <Route path="/" element={<FolderExplorerView />} />
             <Route path="/folder/:folderId" element={<FolderExplorerView />} />
+
+            {/* AI Flashcard Studio & Google Drive Document Hub */}
+            <Route path="/studio" element={<AIStudioView />} />
+            <Route path="/studio/folder/:folderId" element={<AIStudioView />} />
+            <Route path="/studio/document/:documentId" element={<DocumentDetailView />} />
+            <Route path="/documents" element={<Navigate to="/studio" replace />} />
+            <Route path="/documents/:documentId" element={<DocumentDetailView />} />
 
             {/* Redirect legacy separated endpoints to unified workspace */}
             <Route path="/folders" element={<Navigate to="/" replace />} />

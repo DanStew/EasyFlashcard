@@ -6,6 +6,7 @@ import { useState, type FormEvent } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { AlertCircle, Lock, LogIn, Mail, Sparkles, UserPlus } from 'lucide-react';
 import { Button } from '@/components/shared/Button';
+import { GoogleIcon } from '@/components/shared/GoogleIcon';
 import { Input } from '@/components/shared/Input';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,13 +18,22 @@ import './style.scss';
 export function LoginView() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showSuccess } = useToast();
-  const { isAuthenticated, isLoading, login, register, authError, clearAuthError } = useAuth();
+  const { showSuccess, showError } = useToast();
+  const {
+    isAuthenticated,
+    isLoading,
+    login,
+    register,
+    loginWithGoogle,
+    authError,
+    clearAuthError,
+  } = useAuth();
 
   const [mode, setMode] = useState<AuthMode>('login');
   const [form, setForm] = useState(getInitialLoginFormState);
   const [localError, setLocalError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   // If already authenticated and not loading, redirect to target or home
   if (!isLoading && isAuthenticated) {
@@ -41,6 +51,24 @@ export function LoginView() {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (localError) setLocalError(null);
     if (authError) clearAuthError();
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsGoogleSubmitting(true);
+      setLocalError(null);
+      clearAuthError();
+      await loginWithGoogle();
+      showSuccess('Welcome! Signed in with Google successfully.');
+      const returnPath = getReturnPath(location.state);
+      navigate(returnPath, { replace: true });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Google sign-in failed';
+      setLocalError(msg);
+      showError(msg);
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -102,6 +130,20 @@ export function LoginView() {
 
         {/* Card Container */}
         <div className="login-view__card">
+          {/* One-Click Google Sign-In */}
+          <div className="login-view__google-section">
+            <button
+              type="button"
+              className="login-view__google-btn"
+              onClick={handleGoogleSignIn}
+              disabled={isGoogleSubmitting || isSubmitting}
+            >
+              <GoogleIcon size={20} />
+              <span>{isGoogleSubmitting ? 'Signing in with Google...' : 'Continue with Google'}</span>
+            </button>
+            <div className="login-view__divider">or with email</div>
+          </div>
+
           {/* Mode Switcher */}
           <div className="login-view__tabs" role="tablist">
             <button

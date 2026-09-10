@@ -6,17 +6,26 @@ from fastapi import Depends, Header
 
 from app.config import settings
 from app.repositories.base import (
+    IDocumentRepository,
     IFlashcardRepository,
     IFolderRepository,
     ISetRepository,
 )
+from app.repositories.firestore_repo import (
+    FirestoreDocumentRepository,
+    FirestoreFlashcardRepository,
+    FirestoreFolderRepository,
+    FirestoreSetRepository,
+)
 from app.repositories.memory_repo import (
+    InMemoryDocumentRepository,
     InMemoryFlashcardRepository,
     InMemoryFolderRepository,
     InMemorySetRepository,
 )
 from app.services.flashcard_service import FlashcardService
 from app.services.folder_service import FolderService
+from app.services.gdrive_service import GoogleDriveService
 from app.services.seed_service import SeedService
 from app.services.set_service import SetService
 
@@ -24,14 +33,26 @@ from app.services.set_service import SetService
 _in_memory_folder_repo = InMemoryFolderRepository()
 _in_memory_set_repo = InMemorySetRepository()
 _in_memory_flashcard_repo = InMemoryFlashcardRepository()
+_in_memory_document_repo = InMemoryDocumentRepository()
+
+
+def get_document_repository() -> IDocumentRepository:
+    """Return configured Document repository."""
+    if settings.storage_backend == "firestore":
+        from google.cloud import firestore
+
+        db = firestore.AsyncClient(
+            project=settings.firebase_project_id,
+            database=settings.firestore_database,
+        )
+        return FirestoreDocumentRepository(db)
+    return _in_memory_document_repo
 
 
 def get_folder_repository() -> IFolderRepository:
     """Return configured Folder repository."""
     if settings.storage_backend == "firestore":
         from google.cloud import firestore
-
-        from app.repositories.firestore_repo import FirestoreFolderRepository
 
         db = firestore.AsyncClient(
             project=settings.firebase_project_id,
@@ -46,8 +67,6 @@ def get_set_repository() -> ISetRepository:
     if settings.storage_backend == "firestore":
         from google.cloud import firestore
 
-        from app.repositories.firestore_repo import FirestoreSetRepository
-
         db = firestore.AsyncClient(
             project=settings.firebase_project_id,
             database=settings.firestore_database,
@@ -61,14 +80,19 @@ def get_flashcard_repository() -> IFlashcardRepository:
     if settings.storage_backend == "firestore":
         from google.cloud import firestore
 
-        from app.repositories.firestore_repo import FirestoreFlashcardRepository
-
         db = firestore.AsyncClient(
             project=settings.firebase_project_id,
             database=settings.firestore_database,
         )
         return FirestoreFlashcardRepository(db)
     return _in_memory_flashcard_repo
+
+
+def get_gdrive_service(
+    doc_repo: Annotated[IDocumentRepository, Depends(get_document_repository)],
+) -> GoogleDriveService:
+    """Return GoogleDriveService singleton/instance."""
+    return GoogleDriveService(document_repo=doc_repo)
 
 
 def get_folder_service(
@@ -134,3 +158,13 @@ async def get_current_user_id(
     if x_user_id and x_user_id.strip():
         return x_user_id.strip()
     return settings.default_user_id
+
+
+async def get_gdrive_token(
+    x_gdrive_token: Annotated[str | None, Header(alias="X-Google-Drive-Token")] = None,
+) -> str | None:
+    """Extract Google Drive OAuth access token from header."""
+    if x_gdrive_token and x_gdrive_token.strip():
+        return x_gdrive_token.strip()
+    return None
+

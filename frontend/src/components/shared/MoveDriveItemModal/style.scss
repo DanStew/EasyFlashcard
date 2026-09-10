@@ -1,0 +1,93 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.move-drive-item-modal {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+
+  &__hint {
+    font-size: $font-size-sm;
+    color: var(--text-secondary);
+    margin: 0;
+
+    strong {
+      color: var(--text-primary);
+    }
+  }
+
+  &__folder-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-2;
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid var(--border-light);
+    border-radius: $radius-lg;
+    padding: $spacing-2;
+    background: var(--bg-surface-sunken);
+    @include custom-scrollbar;
+  }
+
+  &__folder-option {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    padding: $spacing-2 $spacing-3;
+    border-radius: $radius-md;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+    font-size: $font-size-sm;
+    color: var(--text-primary);
+    text-align: left;
+    transition: all $transition-fast;
+
+    &:hover:not(:disabled) {
+      background: var(--bg-hover);
+      border-color: var(--border-focus);
+    }
+
+    &--selected {
+      background: var(--color-primary-subtle);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      font-weight: $font-weight-semibold;
+    }
+
+    &--current {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__folder-icon {
+    display: flex;
+    align-items: center;
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+
+  &__folder-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__badge {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: $radius-sm;
+    background: var(--bg-surface-sunken);
+    color: var(--text-tertiary);
+    font-weight: $font-weight-medium;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-3;
+    margin-top: $spacing-2;
+  }
+}

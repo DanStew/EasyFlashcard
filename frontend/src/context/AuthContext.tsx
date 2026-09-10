@@ -13,6 +13,7 @@ import type { User } from 'firebase/auth';
 import {
   signInWithEmail,
   registerWithEmail,
+  signInWithGoogle,
   logoutUser,
   subscribeToAuthState,
 } from '@/services/authService';
@@ -26,6 +27,7 @@ export interface AuthContextType {
   isAuthModalOpen: boolean;
   login: (email: string, pass: string) => Promise<void>;
   register: (email: string, pass: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   openAuthModal: () => void;
   closeAuthModal: () => void;
@@ -92,6 +94,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
+  const loginWithGoogle = useCallback(async () => {
+    try {
+      setAuthError(null);
+      await signInWithGoogle();
+      setIsAuthModalOpen(false);
+    } catch (err: unknown) {
+      const friendlyMessage = getFirebaseAuthErrorMessage(err);
+      setAuthError(friendlyMessage);
+      throw new Error(friendlyMessage);
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       setAuthError(null);
@@ -111,6 +125,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthModalOpen,
     login,
     register,
+    loginWithGoogle,
     logout,
     openAuthModal,
     closeAuthModal,

@@ -6,6 +6,7 @@ This makes it easy to switch between different database implementations.
 
 from typing import Protocol
 
+from app.models.document import Document
 from app.models.flashcard import Flashcard
 from app.models.folder import Folder
 from app.models.set import FlashcardSet
@@ -138,3 +139,42 @@ class IFlashcardRepository(Protocol):
     async def count_by_set(self, set_id: str) -> int:
         """Count total flashcards in a set."""
         ...
+
+
+class IDocumentRepository(Protocol):
+    """Interface defining database operations for Document metadata."""
+
+    async def create(self, doc: Document) -> Document:
+        """Persist a new document metadata record."""
+        ...
+
+    async def get_by_id(self, doc_id: str, user_id: str) -> Document | None:
+        """Fetch document metadata by its ID."""
+        ...
+
+    async def get_by_drive_file_id(self, drive_file_id: str, user_id: str) -> Document | None:
+        """Fetch document metadata by Google Drive file ID."""
+        ...
+
+    async def list_by_user(self, user_id: str) -> list[Document]:
+        """Retrieve all documents belonging to a user."""
+        ...
+
+    async def list_by_drive_folder(
+        self, folder_id: str | None, user_id: str
+    ) -> list[Document]:
+        """Retrieve documents located in a specific Drive folder."""
+        ...
+
+    async def update(self, doc: Document) -> Document:
+        """Update an existing document metadata record."""
+        ...
+
+    async def delete(self, doc_id: str, user_id: str) -> bool:
+        """Delete document metadata record."""
+        ...
+
+    async def delete_by_drive_file_id(self, drive_file_id: str, user_id: str) -> bool:
+        """Delete document metadata record by Drive file ID."""
+        ...
+

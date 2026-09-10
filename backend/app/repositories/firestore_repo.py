@@ -4,10 +4,16 @@ from typing import Any
 
 from google.cloud import firestore
 
+from app.models.document import Document
 from app.models.flashcard import Flashcard
 from app.models.folder import Folder
 from app.models.set import FlashcardSet
-from app.repositories.base import IFlashcardRepository, IFolderRepository, ISetRepository
+from app.repositories.base import (
+    IDocumentRepository,
+    IFlashcardRepository,
+    IFolderRepository,
+    ISetRepository,
+)
 
 
 class FirestoreFolderRepository(IFolderRepository):
@@ -274,3 +280,79 @@ class FirestoreFlashcardRepository(IFlashcardRepository):
         count_query: Any = query.count()
         results: Any = await count_query.get()
         return int(results[0][0].value)
+
+
+class FirestoreDocumentRepository(IDocumentRepository):
+    """Firestore implementation of IDocumentRepository."""
+
+    def __init__(self, db: firestore.AsyncClient) -> None:
+        self.db = db
+        self.collection = db.collection("documents")
+
+    async def create(self, doc: Document) -> Document:
+        doc_ref = self.collection.document(doc.id)
+        await doc_ref.set(doc.model_dump(by_alias=False))
+        return doc
+
+    async def get_by_id(self, doc_id: str, user_id: str) -> Document | None:
+        doc_ref = self.collection.document(doc_id)
+        snapshot = await doc_ref.get()
+        if not snapshot.exists:
+            return None
+        data = snapshot.to_dict()
+        if not data or data.get("user_id") != user_id:
+            return None
+        return Document.model_validate(data)
+
+    async def get_by_drive_file_id(self, drive_file_id: str, user_id: str) -> Document | None:
+        query = (
+            self.collection.where(filter=firestore.FieldFilter("user_id", "==", user_id))
+            .where(filter=firestore.FieldFilter("drive_file_id", "==", drive_file_id))
+            .limit(1)
+        )
+        docs = await query.get()
+        if not docs:
+            return None
+        return Document.model_validate(docs[0].to_dict())
+
+    async def list_by_user(self, user_id: str) -> list[Document]:
+        query = self.collection.where(filter=firestore.FieldFilter("user_id", "==", user_id))
+        docs = await query.get()
+        items = [Document.model_validate(doc.to_dict()) for doc in docs if doc.to_dict()]
+        items.sort(key=lambda d: d.created_at, reverse=True)
+        return items
+
+    async def list_by_drive_folder(
+        self, folder_id: str | None, user_id: str
+    ) -> list[Document]:
+        query = (
+            self.collection.where(filter=firestore.FieldFilter("user_id", "==", user_id))
+            .where(filter=firestore.FieldFilter("drive_folder_id", "==", folder_id))
+        )
+        docs = await query.get()
+        items = [Document.model_validate(doc.to_dict()) for doc in docs if doc.to_dict()]
+        items.sort(key=lambda d: d.created_at, reverse=True)
+        return items
+
+    async def update(self, doc: Document) -> Document:
+        doc_ref = self.collection.document(doc.id)
+        await doc_ref.set(doc.model_dump(by_alias=False), merge=True)
+        return doc
+
+    async def delete(self, doc_id: str, user_id: str) -> bool:
+        doc_ref = self.collection.document(doc_id)
+        snapshot = await doc_ref.get()
+        if not snapshot.exists:
+            return False
+        data = snapshot.to_dict()
+        if not data or data.get("user_id") != user_id:
+            return False
+        await doc_ref.delete()
+        return True
+
+    async def delete_by_drive_file_id(self, drive_file_id: str, user_id: str) -> bool:
+        doc = await self.get_by_drive_file_id(drive_file_id, user_id)
+        if not doc:
+            return False
+        return await self.delete(doc.id, user_id)
+

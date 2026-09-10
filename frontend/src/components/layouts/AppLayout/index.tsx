@@ -15,7 +15,6 @@ import {
   User as UserIcon,
 } from 'lucide-react';
 import { AuthModal } from '@/components/shared/AuthModal';
-import { Badge } from '@/components/shared/Badge';
 import { Breadcrumbs } from '@/components/shared/Breadcrumbs';
 import { Button } from '@/components/shared/Button';
 import { FolderTreeNav } from '@/components/shared/FolderTreeNav';
@@ -290,19 +289,22 @@ export function AppLayout({
               <span>Library</span>
             </Link>
 
-            {/* AI Generator Link (Future placeholder with Coming Soon) */}
-            <div
-              className="app-sidebar__nav-link app-sidebar__nav-link--teaser"
-              title="AI Document Converter coming in next release"
+            <Link
+              to="/studio"
+              className={`app-sidebar__nav-link ${
+                location.pathname.startsWith('/studio') || location.pathname.startsWith('/documents')
+                  ? 'app-sidebar__nav-link--active'
+                  : ''
+              }`}
+              onClick={() => {
+                if (window.innerWidth <= 1024) setIsSidebarOpen(false);
+              }}
             >
               <span className="app-sidebar__nav-icon">
                 <Sparkles size={18} />
               </span>
               <span>AI Flashcard Studio</span>
-              <Badge variant="coming-soon" size="sm" className="app-sidebar__nav-teaser-badge">
-                Soon
-              </Badge>
-            </div>
+            </Link>
           </div>
 
           {/* Hierarchical Folder Explorer Tree */}

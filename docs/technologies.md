@@ -13,8 +13,8 @@ Backend :
 - FastAPI
 - Python
 - Firebase/Firestore - Backend database for flashcards, flashcard metadata and etc
-- Google Vertex AI (for any AI components)
-- Google Cloud Storage - any document/file storage
+- Google Vertex AI (for future AI flashcard generation)
+- Google Drive API v3 - User-scoped document and study file storage (`EasyFlashcard` root folder hierarchy)
 
 Mobile UI :
 
