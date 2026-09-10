@@ -40,6 +40,11 @@ gcp-oauth.keys.json
 token.json
 .gdrive-token.json
 *token.json
+.easyflashcard-auth.json
+.*auth.json
+*auth.json
+*service-account*.json
+*sa-key*.json
 
 # Logs and Diagnostics
 # ------------------------------------------------------------------------------
@@ -119,3 +124,5 @@ dist-ssr/
 tmp/
 temp/
 .tmp/
+downloaded_*
+**/downloaded_*

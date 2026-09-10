@@ -1,8 +1,15 @@
-"""Application configuration module using pydantic-settings."""
-
+import os
+import pathlib
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Ensure valid local path for GOOGLE_APPLICATION_CREDENTIALS when running on host machine
+cred_env = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+if not cred_env or not os.path.exists(cred_env):
+    local_sa = pathlib.Path(__file__).resolve().parent.parent / "service-account.json"
+    if local_sa.exists():
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(local_sa)
 
 
 class Settings(BaseSettings):

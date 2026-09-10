@@ -1,0 +1,26 @@
+# ==============================================================================
+# EasyFlashcard - MCP Server .gitignore (Node / TypeScript)
+# ==============================================================================
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment & Auth
+.env*
+*.local
+.*-auth.json
+*-auth.json
+
+# Editor & OS
+.DS_Store
+Thumbs.db

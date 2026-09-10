@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   BookOpen,
+  Bot,
   FolderPlus,
   Home,
   LogIn,
@@ -20,6 +21,7 @@ import { Button } from '@/components/shared/Button';
 import { FolderTreeNav } from '@/components/shared/FolderTreeNav';
 import { GlobalSearch } from '@/components/shared/GlobalSearch';
 import { Input } from '@/components/shared/Input';
+import { McpConfigModal } from '@/components/shared/McpConfigModal';
 import { Modal } from '@/components/shared/Modal';
 import { ServerConfigModal } from '@/components/shared/ServerConfigModal';
 import { StudySetSelectorModal } from '@/components/shared/StudySetSelectorModal';
@@ -73,6 +75,7 @@ export function AppLayout({
   // Modals state
   const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
   const [isServerConfigOpen, setIsServerConfigOpen] = useState(false);
+  const [isMcpConfigOpen, setIsMcpConfigOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [parentFolderId, setParentFolderId] = useState<string | null>(null);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
@@ -324,64 +327,81 @@ export function AppLayout({
 
           {/* Sidebar Footer */}
           <div className="app-sidebar__footer">
-            <div className="app-sidebar__user-badge">
-              <div className="app-sidebar__user-badge-avatar">
-                {isAuthenticated ? getUserInitial(currentUser) : <UserIcon size={14} />}
+            {/* User Profile Card */}
+            <div className="app-sidebar__user-card">
+              <div className="app-sidebar__user-card-avatar">
+                {isAuthenticated ? getUserInitial(currentUser) : <UserIcon size={16} />}
               </div>
-              <div className="app-sidebar__user-badge-info">
-                <span className="app-sidebar__user-badge-label" title={getUserDisplayName(currentUser)}>
+              <div className="app-sidebar__user-card-info">
+                <span className="app-sidebar__user-card-label" title={getUserDisplayName(currentUser)}>
                   {getUserDisplayName(currentUser)}
                 </span>
                 {isAuthenticated && currentUser?.email && (
-                  <span className="app-sidebar__user-badge-email" title={currentUser.email}>
+                  <span className="app-sidebar__user-card-email" title={currentUser.email}>
                     {currentUser.email}
                   </span>
                 )}
-                {isAuthenticated ? (
+                <div className="app-sidebar__user-card-actions">
+                  {isAuthenticated ? (
+                    <button
+                      type="button"
+                      className="app-sidebar__auth-action-btn app-sidebar__auth-action-btn--signout"
+                      onClick={handleSignOut}
+                      title="Sign out of your account"
+                    >
+                      <LogOut size={11} />
+                      <span>Sign Out</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="app-sidebar__auth-action-btn"
+                      onClick={openAuthModal}
+                      title="Sign in with your email account"
+                    >
+                      <LogIn size={11} />
+                      <span>Sign In</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Utility Toolbar */}
+            <div className="app-sidebar__footer-toolbar">
+              <div className="app-sidebar__toolbar-group">
+                <button
+                  type="button"
+                  className="app-sidebar__action-icon-btn app-sidebar__action-icon-btn--mcp"
+                  onClick={() => setIsMcpConfigOpen(true)}
+                  title="AI Agent & MCP Integration (Antigravity, Claude, Cursor)"
+                  aria-label="AI Agent & MCP Integration"
+                >
+                  <Bot size={16} />
+                </button>
+                <button
+                  type="button"
+                  className="app-sidebar__action-icon-btn"
+                  onClick={() => setIsServerConfigOpen(true)}
+                  title="Configure Backend Server Connection (LAN / Mobile)"
+                  aria-label="Configure Backend Server Connection"
+                >
+                  <Server size={15} />
+                </button>
+                {!isAuthenticated && (
                   <button
                     type="button"
-                    className="app-sidebar__auth-action-btn app-sidebar__auth-action-btn--signout"
-                    onClick={handleSignOut}
-                    title="Sign out of your account"
+                    className="app-sidebar__seed-btn"
+                    onClick={handleSeedDemoData}
+                    disabled={isSeeding}
+                    title="Prepopulate sample folders, sets, and flashcards"
                   >
-                    <LogOut size={11} />
-                    <span>Sign Out</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="app-sidebar__auth-action-btn"
-                    onClick={openAuthModal}
-                    title="Sign in with your email account"
-                  >
-                    <LogIn size={11} />
-                    <span>Sign In</span>
+                    <RefreshCw className={isSeeding ? 'app-sidebar__seed-icon--spin' : ''} size={11} />
+                    <span>{isSeeding ? '...' : 'Seed'}</span>
                   </button>
                 )}
               </div>
-            </div>
-            <div className="app-sidebar__footer-actions">
-              {!isAuthenticated && (
-                <button
-                  type="button"
-                  className="app-sidebar__seed-btn"
-                  onClick={handleSeedDemoData}
-                  disabled={isSeeding}
-                  title="Prepopulate sample folders, sets, and flashcards"
-                >
-                  <RefreshCw className={isSeeding ? 'app-sidebar__seed-icon--spin' : ''} size={11} />
-                  <span>{isSeeding ? 'Seeding...' : 'Seed'}</span>
-                </button>
-              )}
-              <button
-                type="button"
-                className="app-sidebar__server-btn"
-                onClick={() => setIsServerConfigOpen(true)}
-                title="Configure Backend Server Connection (LAN / Mobile)"
-                aria-label="Configure Backend Server Connection"
-              >
-                <Server size={14} />
-              </button>
+
               <ThemeToggle />
             </div>
           </div>
@@ -449,6 +469,12 @@ export function AppLayout({
       <ServerConfigModal
         isOpen={isServerConfigOpen}
         onClose={() => setIsServerConfigOpen(false)}
+      />
+
+      {/* AI Agent & MCP Integration Modal */}
+      <McpConfigModal
+        isOpen={isMcpConfigOpen}
+        onClose={() => setIsMcpConfigOpen(false)}
       />
     </div>
   );

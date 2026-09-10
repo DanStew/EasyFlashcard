@@ -57,6 +57,15 @@ htmlcov/
 *service-account*.json
 *sa-key*.json
 credentials.json
+*token*.json
+*auth*.json
+
+# Downloaded and Temporary Files
+downloaded_*
+*.pdf
+*.jpg
+*.jpeg
+*.png
 
 # Logs
 *.log

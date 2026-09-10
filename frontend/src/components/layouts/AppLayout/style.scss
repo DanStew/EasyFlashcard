@@ -220,30 +220,33 @@
   }
 
   &__footer {
-    padding: $spacing-4 $spacing-5;
+    padding: $spacing-3 $spacing-4;
     border-top: 1px solid var(--border-light);
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: $spacing-3;
     background-color: var(--bg-surface-raised);
     min-width: 280px;
   }
 
-  &__user-badge {
+  &__user-card {
     display: flex;
     align-items: center;
-    gap: $spacing-2;
-    font-size: $font-size-xs;
-    color: var(--text-secondary);
+    gap: $spacing-3;
+    padding: $spacing-2 $spacing-3;
+    border-radius: $radius-md;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-light);
 
     &-avatar {
       @include flex-center;
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       background-color: var(--color-primary-subtle);
       color: var(--color-primary);
       font-weight: $font-weight-bold;
+      font-size: $font-size-sm;
       flex-shrink: 0;
     }
 
@@ -251,25 +254,33 @@
       display: flex;
       flex-direction: column;
       gap: 1px;
+      min-width: 0;
+      flex: 1;
     }
 
     &-label {
       font-weight: $font-weight-semibold;
+      font-size: $font-size-xs;
       color: var(--text-primary);
       line-height: 1.2;
-      max-width: 130px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     &-email {
-      font-size: 10px;
+      font-size: 11px;
       color: var(--text-tertiary);
-      max-width: 130px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    &-actions {
+      display: flex;
+      align-items: center;
+      gap: $spacing-2;
+      margin-top: 2px;
     }
   }
 
@@ -305,42 +316,20 @@
     }
   }
 
-  &__seed-btn {
-    display: inline-flex;
+  &__footer-toolbar {
+    display: flex;
     align-items: center;
-    gap: 4px;
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: 11px;
-    color: var(--color-primary);
-    cursor: pointer;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    transition: color 0.15s ease, opacity 0.15s ease;
-
-    &:hover:not(:disabled) {
-      color: var(--color-primary-hover);
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      text-decoration: none;
-    }
+    justify-content: space-between;
+    gap: $spacing-2;
   }
 
-  &__seed-icon--spin {
-    animation: spin 1s linear infinite;
-  }
-
-  &__footer-actions {
+  &__toolbar-group {
     display: flex;
     align-items: center;
     gap: $spacing-2;
   }
 
-  &__server-btn {
+  &__action-icon-btn {
     @include flex-center;
     width: 32px;
     height: 32px;
@@ -356,6 +345,45 @@
       border-color: var(--color-primary);
       background-color: var(--bg-hover);
     }
+
+    &--mcp {
+      &:hover {
+        color: #8b5cf6;
+        border-color: #8b5cf6;
+        background-color: rgba(139, 92, 246, 0.08);
+      }
+    }
+  }
+
+  &__seed-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 $spacing-2;
+    height: 32px;
+    border-radius: $radius-md;
+    border: 1px solid var(--border-light);
+    background-color: var(--bg-surface);
+    font-size: 11px;
+    font-weight: $font-weight-medium;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover:not(:disabled) {
+      color: var(--color-primary);
+      border-color: var(--color-primary);
+      background-color: var(--bg-hover);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__seed-icon--spin {
+    animation: spin 1s linear infinite;
   }
 }
 
