@@ -6,12 +6,15 @@ from app.models.document import Document
 from app.models.flashcard import Flashcard
 from app.models.folder import Folder
 from app.models.set import FlashcardSet
+from app.models.user_integration import UserIntegration
 from app.repositories.base import (
     IDocumentRepository,
     IFlashcardRepository,
     IFolderRepository,
     ISetRepository,
+    IUserIntegrationRepository,
 )
+
 
 
 class InMemoryFolderRepository(IFolderRepository):
@@ -337,4 +340,40 @@ class InMemoryDocumentRepository(IDocumentRepository):
     def clear(self) -> None:
         """Utility for test suites to reset state."""
         self._documents.clear()
+
+
+class InMemoryUserIntegrationRepository(IUserIntegrationRepository):
+    """In-memory thread-safe implementation of IUserIntegrationRepository."""
+
+    def __init__(self) -> None:
+        self._integrations: dict[str, UserIntegration] = {}
+        self._lock = asyncio.Lock()
+
+    def _make_key(self, user_id: str, provider: str) -> str:
+        return f"{user_id}:{provider}"
+
+    async def get(self, user_id: str, provider: str = "google_drive") -> UserIntegration | None:
+        async with self._lock:
+            key = self._make_key(user_id, provider)
+            item = self._integrations.get(key)
+            return item.model_copy(deep=True) if item else None
+
+    async def save(self, integration: UserIntegration) -> UserIntegration:
+        async with self._lock:
+            key = self._make_key(integration.user_id, integration.provider)
+            self._integrations[key] = integration.model_copy(deep=True)
+            return integration.model_copy(deep=True)
+
+    async def delete(self, user_id: str, provider: str = "google_drive") -> bool:
+        async with self._lock:
+            key = self._make_key(user_id, provider)
+            if key in self._integrations:
+                del self._integrations[key]
+                return True
+            return False
+
+    def clear(self) -> None:
+        """Utility for test suites to reset state."""
+        self._integrations.clear()
+
 

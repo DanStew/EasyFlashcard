@@ -6,6 +6,8 @@ import { apiClient } from './apiClient';
 import type {
   CreateSubfolderRequest,
   Document,
+  DriveAuthDisconnectResponse,
+  DriveAuthStatus,
   DriveFolderContentsResponse,
   DriveFolderItem,
   MoveItemRequest,
@@ -13,9 +15,37 @@ import type {
 
 export const documentService = {
   /**
+   * Checks current Google Drive connection status and refresh token validity.
+   */
+  async getDriveAuthStatus(): Promise<DriveAuthStatus> {
+    const res = await apiClient.get<DriveAuthStatus>('/documents/drive/auth/status');
+    return res.data;
+  },
+
+  /**
+   * Exchanges one-time Google OAuth authorization code for persistent refresh token.
+   */
+  async exchangeDriveAuthCode(code: string, redirectUri: string = 'postmessage'): Promise<DriveAuthStatus> {
+    const res = await apiClient.post<DriveAuthStatus>('/documents/drive/auth/exchange', {
+      code,
+      redirect_uri: redirectUri,
+    });
+    return res.data;
+  },
+
+  /**
+   * Disconnects Google Drive integration.
+   */
+  async disconnectDrive(): Promise<DriveAuthDisconnectResponse> {
+    const res = await apiClient.post<DriveAuthDisconnectResponse>('/documents/drive/auth/disconnect');
+    return res.data;
+  },
+
+  /**
    * Fetches contents of a Google Drive folder in the EasyFlashcard hierarchy.
    */
   async getDriveFolderContents(folderId?: string): Promise<DriveFolderContentsResponse> {
+
     const params = folderId ? { folder_id: folderId } : {};
     const res = await apiClient.get<DriveFolderContentsResponse>('/documents/drive/contents', {
       params,

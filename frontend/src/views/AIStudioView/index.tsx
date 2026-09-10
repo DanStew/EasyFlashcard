@@ -2,10 +2,11 @@
 // AIStudioView - Presentation Component
 // ==========================================
 
-import { HardDrive, Sparkles } from 'lucide-react';
+import { HardDrive, RefreshCw, Sparkles } from 'lucide-react';
 import { AIGenerationHub } from '@/components/shared/AIGenerationHub';
 import { AIGenerationModal } from '@/components/shared/AIGenerationModal';
 import { Badge } from '@/components/shared/Badge';
+import { Button } from '@/components/shared/Button';
 import { DriveAuthBanner } from '@/components/shared/DriveAuthBanner';
 import { DriveFileExplorer } from '@/components/shared/DriveFileExplorer';
 import { DriveUploadModal } from '@/components/shared/DriveUploadModal';
@@ -18,22 +19,27 @@ import './style.scss';
 export function AIStudioView() {
   const {
     contents,
+    folders,
     isLoading,
+    isRefreshing,
     isConnectingDrive,
+    needsScopeUpgrade,
     errorCode,
     errorMessage,
     isBannerDismissed,
     isUploadModalOpen,
     isNewFolderModalOpen,
     isAIGenModalOpen,
-    aiGenInitialMode,
     aiGenSelectedDoc,
     moveItemTarget,
+    isGenerating,
+    generationEvent,
     setIsUploadModalOpen,
     setIsNewFolderModalOpen,
     setIsAIGenModalOpen,
     setMoveItemTarget,
     handleConnectDrive,
+    handleRefresh,
     handleDismissBanner,
     handleNavigateFolder,
     handleOpenDocument,
@@ -42,17 +48,20 @@ export function AIStudioView() {
     handleMoveItem,
     handleTrashItem,
     handleOpenAIGenModal,
-    handleExecuteAIGeneration,
+    handleStartAIGeneration,
+    handleNavigateToSet,
   } = useAIStudio();
 
   const handleGenerateFlashcards = (doc: Document) => {
-    handleOpenAIGenModal('document', doc);
+    handleOpenAIGenModal(doc);
   };
 
   const totalDocs = contents?.files.length || 0;
   const totalFolders = contents?.subfolders.length || 0;
   const totalLinkedSets =
     contents?.files.reduce((acc, f) => acc + (f.linkedSetIds?.length || 0), 0) || 0;
+
+  const activeBannerErrorCode = errorCode || (needsScopeUpgrade ? 'DRIVE_SCOPE_UPGRADE' : null);
 
   return (
     <div className="ai-studio-view animate-fade-in">
@@ -64,10 +73,24 @@ export function AIStudioView() {
               <Sparkles size={12} />
               <span>AI Flashcard Studio</span>
             </Badge>
-            <Badge variant="subtle" size="sm">
-              <HardDrive size={12} />
-              <span>Google Drive Synced</span>
-            </Badge>
+            <button
+              type="button"
+              className="ai-studio-view__sync-badge-btn"
+              onClick={handleConnectDrive}
+              disabled={isConnectingDrive}
+              title="Click to reconnect or upgrade Google Drive permissions"
+            >
+              <Badge variant={needsScopeUpgrade ? 'warning' : 'subtle'} size="sm">
+                <HardDrive size={12} />
+                <span>
+                  {isConnectingDrive
+                    ? 'Connecting...'
+                    : needsScopeUpgrade
+                    ? 'Drive: Upgrade Permissions'
+                    : 'Google Drive Synced'}
+                </span>
+              </Badge>
+            </button>
           </div>
 
           <h1 className="ai-studio-view__title">
@@ -97,10 +120,10 @@ export function AIStudioView() {
 
       {/* Main Content Area */}
       <main className="ai-studio-view__main">
-        {/* Permission / Quota / Auth Error Warning Banner */}
-        {errorCode && !isBannerDismissed && (
+        {/* Permission / Quota / Auth Error or Scope Upgrade Warning Banner */}
+        {activeBannerErrorCode && !isBannerDismissed && (
           <DriveAuthBanner
-            errorCode={errorCode}
+            errorCode={activeBannerErrorCode}
             errorMessage={errorMessage}
             onConnectDrive={handleConnectDrive}
             onDismiss={handleDismissBanner}
@@ -111,9 +134,9 @@ export function AIStudioView() {
         {/* AI Flashcard Generation Hub */}
         <section className="ai-studio-view__hub-section">
           <AIGenerationHub
+            onOpenGenerator={() => handleOpenAIGenModal(null)}
             onOpenUpload={() => setIsUploadModalOpen(true)}
-            onOpenPromptModal={(mode) => handleOpenAIGenModal(mode)}
-            onExploreDocuments={() => {}}
+            totalDocsCount={totalDocs}
           />
         </section>
 
@@ -126,13 +149,33 @@ export function AIStudioView() {
                 Manage lecture notes, slides, and study PDFs in your EasyFlashcard Drive folder
               </p>
             </div>
+            <div className="ai-studio-view__section-actions">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleConnectDrive}
+                disabled={isConnectingDrive}
+                leftIcon={
+                  isConnectingDrive ? (
+                    <RefreshCw size={13} className="spin-animation" />
+                  ) : (
+                    <HardDrive size={13} />
+                  )
+                }
+                title="Connect or re-authorize Google Drive with full permissions"
+              >
+                {isConnectingDrive ? 'Connecting...' : 'Reconnect Drive'}
+              </Button>
+            </div>
           </div>
 
           <DriveFileExplorer
             contents={contents}
             isLoading={isLoading}
+            isRefreshing={isRefreshing}
             onNavigateFolder={handleNavigateFolder}
             onOpenDocument={handleOpenDocument}
+            onRefreshClick={handleRefresh}
             onUploadClick={() => setIsUploadModalOpen(true)}
             onNewFolderClick={() => setIsNewFolderModalOpen(true)}
             onMoveItemClick={(item) => setMoveItemTarget(item)}
@@ -171,11 +214,15 @@ export function AIStudioView() {
 
       <AIGenerationModal
         isOpen={isAIGenModalOpen}
-        initialMode={aiGenInitialMode}
-        initialDocumentId={aiGenSelectedDoc?.id}
-        initialDocumentName={aiGenSelectedDoc?.name}
+        availableDocuments={contents?.files || []}
+        folders={folders}
+        initialSelectedDoc={aiGenSelectedDoc}
+        initialFolderId={null}
         onClose={() => setIsAIGenModalOpen(false)}
-        onGenerate={handleExecuteAIGeneration}
+        onStartGeneration={handleStartAIGeneration}
+        generationEvent={generationEvent}
+        isGenerating={isGenerating}
+        onNavigateToSet={handleNavigateToSet}
       />
     </div>
   );

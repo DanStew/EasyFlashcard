@@ -8,12 +8,15 @@ from app.models.document import Document
 from app.models.flashcard import Flashcard
 from app.models.folder import Folder
 from app.models.set import FlashcardSet
+from app.models.user_integration import UserIntegration
 from app.repositories.base import (
     IDocumentRepository,
     IFlashcardRepository,
     IFolderRepository,
     ISetRepository,
+    IUserIntegrationRepository,
 )
+
 
 
 class FirestoreFolderRepository(IFolderRepository):
@@ -355,4 +358,39 @@ class FirestoreDocumentRepository(IDocumentRepository):
         if not doc:
             return False
         return await self.delete(doc.id, user_id)
+
+
+class FirestoreUserIntegrationRepository(IUserIntegrationRepository):
+    """Firestore implementation of IUserIntegrationRepository."""
+
+    def __init__(self, db: firestore.AsyncClient) -> None:
+        self.db = db
+        self.collection = db.collection("user_integrations")
+
+    def _doc_id(self, user_id: str, provider: str) -> str:
+        return f"{user_id}_{provider}"
+
+    async def get(self, user_id: str, provider: str = "google_drive") -> UserIntegration | None:
+        doc_ref = self.collection.document(self._doc_id(user_id, provider))
+        snapshot = await doc_ref.get()
+        if not snapshot.exists:
+            return None
+        data = snapshot.to_dict()
+        if not data or data.get("user_id") != user_id:
+            return None
+        return UserIntegration.model_validate(data)
+
+    async def save(self, integration: UserIntegration) -> UserIntegration:
+        doc_ref = self.collection.document(self._doc_id(integration.user_id, integration.provider))
+        await doc_ref.set(integration.model_dump(by_alias=False), merge=True)
+        return integration
+
+    async def delete(self, user_id: str, provider: str = "google_drive") -> bool:
+        doc_ref = self.collection.document(self._doc_id(user_id, provider))
+        snapshot = await doc_ref.get()
+        if not snapshot.exists:
+            return False
+        await doc_ref.delete()
+        return True
+
 

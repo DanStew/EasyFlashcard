@@ -52,6 +52,15 @@ export function getBannerInfoForError(code: DriveErrorCode | null, customMsg?: s
           'Your Google Drive authorization has expired or is missing. Connect your Google account to access, manage, and upload study documents in EasyFlashcard.',
         actionText: 'Connect Google Drive',
       };
+    case 'DRIVE_SCOPE_UPGRADE':
+      return {
+        variant: 'info',
+        title: 'Upgrade Drive Permissions for Full Folder Sync',
+        description:
+          customMsg ||
+          'Your Google Drive connection is using legacy restricted permissions. Upgrade permissions once so EasyFlashcard can automatically discover all files and subfolders created directly in your Google Drive.',
+        actionText: 'Upgrade Permissions & Sync',
+      };
     case 'DRIVE_UNKNOWN_ERROR':
     default:
       return {

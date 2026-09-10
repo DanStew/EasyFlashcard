@@ -30,7 +30,7 @@ import './style.scss';
 export function DocumentDetailView() {
   const { documentId } = useParams<{ documentId: string }>();
   const navigate = useNavigate();
-  const { showSuccess, showInfo, showError } = useToast();
+  const { showSuccess, showError } = useToast();
 
   const [document, setDocument] = useState<Document | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,9 +63,11 @@ export function DocumentDetailView() {
   }, [documentId, showError]);
 
   const handleGenerateFlashcards = () => {
-    showInfo(
-      `AI Flashcard Studio generation for "${document?.name}" will be executed automatically in the upcoming AI release!`
-    );
+    if (document?.id) {
+      navigate(`/studio?docId=${document.id}`);
+    } else {
+      navigate('/studio');
+    }
   };
 
   const handleCopyFileId = () => {

@@ -2,23 +2,25 @@
 // AIGenerationModal - Types
 // ==========================================
 
-export type AIGenerationMode = 'prompt' | 'text' | 'document';
-
-export interface AIGenerationConfig {
-  mode: AIGenerationMode;
-  topic: string;
-  notesText: string;
-  selectedDocumentId?: string | null;
-  cardCount: number;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  targetFolderId?: string | null;
-}
+import type { Document } from '@/types/document';
+import type { Folder } from '@/types/folder';
+import type { AIGenerationEvent, AIGenerationRequest } from '@/types/aiGeneration';
 
 export interface AIGenerationModalProps {
   isOpen: boolean;
-  initialMode?: AIGenerationMode;
-  initialDocumentId?: string | null;
-  initialDocumentName?: string | null;
   onClose: () => void;
-  onGenerate: (config: AIGenerationConfig) => void;
+  availableDocuments?: Document[];
+  folders?: Folder[];
+  initialSelectedDoc?: Document | null;
+  initialFolderId?: string | null;
+  onStartGeneration: (request: AIGenerationRequest) => Promise<void>;
+  generationEvent: AIGenerationEvent | null;
+  isGenerating: boolean;
+  onNavigateToSet?: (setId: string) => void;
+}
+
+export interface FocusSuggestion {
+  id: string;
+  label: string;
+  promptSnippet: string;
 }

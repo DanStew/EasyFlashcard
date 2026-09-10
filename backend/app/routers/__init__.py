@@ -1,5 +1,4 @@
-"""Routers package."""
-
+from app.routers.ai_generation import router as ai_generation_router
 from app.routers.dev import router as dev_router
 from app.routers.documents import router as documents_router
 from app.routers.flashcards import router as flashcards_router
@@ -9,6 +8,7 @@ from app.routers.search import router as search_router
 from app.routers.sets import router as sets_router
 
 __all__ = [
+    "ai_generation_router",
     "dev_router",
     "documents_router",
     "flashcards_router",

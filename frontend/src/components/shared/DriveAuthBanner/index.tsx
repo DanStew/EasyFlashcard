@@ -2,7 +2,7 @@
 // DriveAuthBanner - Component Presentation
 // ==========================================
 
-import { AlertTriangle, Cloud, HardDrive, RefreshCw, ShieldAlert, X } from 'lucide-react';
+import { AlertTriangle, Cloud, HardDrive, RefreshCw, ShieldAlert, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/shared/Button';
 import type { DriveAuthBannerProps } from './types';
 import { getBannerInfoForError } from './utils';
@@ -25,6 +25,8 @@ export function DriveAuthBanner({
         return <HardDrive size={20} />;
       case 'DRIVE_AUTH_REQUIRED':
         return <AlertTriangle size={20} />;
+      case 'DRIVE_SCOPE_UPGRADE':
+        return <Sparkles size={20} />;
       default:
         return <Cloud size={20} />;
     }

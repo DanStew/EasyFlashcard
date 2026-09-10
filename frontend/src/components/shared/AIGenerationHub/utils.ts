@@ -1,46 +1,31 @@
 // ==========================================
-// AIGenerationHub - Utilities
+// AIGenerationHub - Utilities & Metadata
 // ==========================================
 
-export interface AICapabilityCard {
-  id: 'document' | 'prompt' | 'text';
+export interface StudioFeaturePill {
+  id: string;
+  iconName: string;
   title: string;
-  badge: string;
-  badgeVariant: 'primary' | 'subtle' | 'success';
   description: string;
-  actionText: string;
-  highlightPill: string;
 }
 
-export const AI_CAPABILITIES: AICapabilityCard[] = [
+export const STUDIO_FEATURES: StudioFeaturePill[] = [
   {
-    id: 'document',
-    title: 'From Documents & Slides',
-    badge: 'Document AI',
-    badgeVariant: 'primary',
-    description:
-      'Upload or select study PDFs, slide decks, and lecture notes directly from your Google Drive to extract structured flashcards with concept citations.',
-    actionText: 'Upload Document',
-    highlightPill: 'PDF • PPTX • DOCX',
+    id: 'grounding',
+    iconName: 'FileCheck',
+    title: 'Strict Document Grounding',
+    description: 'Directly grounded in your lecture slides with slide and page citation markers.',
   },
   {
-    id: 'prompt',
-    title: 'From Prompt or Topic',
-    badge: 'Prompt AI',
-    badgeVariant: 'primary',
-    description:
-      'Describe any subject, syllabus theme, or medical/engineering concept to automatically generate comprehensive Q&A flashcard sets.',
-    actionText: 'Create by Prompt',
-    highlightPill: 'Any Subject • Custom Difficulty',
+    id: 'latex',
+    iconName: 'Sigma',
+    title: 'LaTeX Math & Science Formulas',
+    description: 'Accurate KaTeX equations ($E=mc^2$) and code blocks formatted automatically.',
   },
   {
-    id: 'text',
-    title: 'From Raw Text & Notes',
-    badge: 'Text Extraction',
-    badgeVariant: 'success',
-    description:
-      'Paste lecture transcripts, article snippets, or Markdown summaries to synthesize key definitions and high-yield flashcard pairs.',
-    actionText: 'Paste Notes',
-    highlightPill: 'Markdown • Lecture Notes',
+    id: 'agents',
+    iconName: 'Workflow',
+    title: 'LangGraph Multi-Agent Audit',
+    description: 'Automated Curriculum Planner and Quality Reviewer ensure no missed concepts.',
   },
 ];

@@ -273,6 +273,10 @@
     color: var(--text-secondary);
     font-weight: $font-weight-medium;
   }
+
+  &__refresh-spinning {
+    animation: spin 1s linear infinite;
+  }
 }
 
 @include breakpoint-md {

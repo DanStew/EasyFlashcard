@@ -18,10 +18,66 @@ from app.models.document import (
     DriveFolderItem,
     MoveItemRequest,
 )
+from app.models.user_integration import (
+    DriveAuthDisconnectResponse,
+    DriveAuthExchangeRequest,
+    DriveAuthStatusResponse,
+)
 from app.repositories.base import IDocumentRepository, ISetRepository
 from app.services.gdrive_service import GoogleDriveService
 
 router = APIRouter(prefix="/api/v1/documents", tags=["documents"])
+
+
+@router.post(
+    "/drive/auth/exchange",
+    response_model=DriveAuthStatusResponse,
+    summary="Exchange Google OAuth authorization code for persistent refresh token",
+)
+async def exchange_drive_auth_code(
+    payload: DriveAuthExchangeRequest,
+    user_id: Annotated[str, Depends(get_current_user_id)],
+    gdrive_service: Annotated[GoogleDriveService, Depends(get_gdrive_service)],
+) -> DriveAuthStatusResponse:
+    """Exchanges one-time OAuth authorization code for persistent offline access & refresh token."""
+    await gdrive_service.exchange_auth_code(
+        code=payload.code,
+        user_id=user_id,
+        redirect_uri=payload.redirect_uri,
+    )
+    return await gdrive_service.get_auth_status(user_id=user_id)
+
+
+@router.get(
+    "/drive/auth/status",
+    response_model=DriveAuthStatusResponse,
+    summary="Check user Google Drive OAuth connection status",
+)
+async def get_drive_auth_status(
+    user_id: Annotated[str, Depends(get_current_user_id)],
+    gdrive_service: Annotated[GoogleDriveService, Depends(get_gdrive_service)],
+    token: Annotated[str | None, Depends(get_gdrive_token)] = None,
+) -> DriveAuthStatusResponse:
+    """Returns whether the authenticated user has an active Google Drive link with persistent refresh token."""
+    return await gdrive_service.get_auth_status(user_id=user_id, token=token)
+
+
+@router.post(
+    "/drive/auth/disconnect",
+    response_model=DriveAuthDisconnectResponse,
+    summary="Disconnect Google Drive and revoke credentials",
+)
+async def disconnect_drive_integration(
+    user_id: Annotated[str, Depends(get_current_user_id)],
+    gdrive_service: Annotated[GoogleDriveService, Depends(get_gdrive_service)],
+) -> DriveAuthDisconnectResponse:
+    """Disconnects Google Drive and clears saved OAuth tokens."""
+    success = await gdrive_service.disconnect(user_id=user_id)
+    return DriveAuthDisconnectResponse(
+        success=success,
+        message="Google Drive has been disconnected.",
+    )
+
 
 
 @router.get(

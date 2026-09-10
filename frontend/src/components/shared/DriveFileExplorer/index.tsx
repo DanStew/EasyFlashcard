@@ -10,6 +10,7 @@ import {
   HardDrive,
   LayoutList,
   Loader2,
+  RefreshCw,
   Search,
   UploadCloud,
 } from 'lucide-react';
@@ -24,8 +25,10 @@ import './style.scss';
 export function DriveFileExplorer({
   contents,
   isLoading,
+  isRefreshing,
   onNavigateFolder,
   onOpenDocument,
+  onRefreshClick,
   onUploadClick,
   onNewFolderClick,
   onMoveItemClick,
@@ -118,6 +121,24 @@ export function DriveFileExplorer({
               <LayoutList size={16} />
             </button>
           </div>
+
+          {onRefreshClick && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onRefreshClick}
+              disabled={isRefreshing}
+              leftIcon={
+                <RefreshCw
+                  size={14}
+                  className={isRefreshing ? 'drive-explorer__refresh-spinning' : ''}
+                />
+              }
+              title="Sync latest changes from Google Drive"
+            >
+              Sync
+            </Button>
+          )}
 
           <Button
             variant="secondary"

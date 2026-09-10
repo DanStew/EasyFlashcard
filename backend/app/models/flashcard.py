@@ -29,6 +29,10 @@ class DocumentReference(CamelModel):
         ..., description="Cached file name of the document for quick display."
     )
     page_number: int = Field(..., ge=1, description="Exact 1-indexed page or slide number.")
+    grounding_evidence: str | None = Field(
+        default=None,
+        description="Verbatim quote or excerpt proving this card is grounded in the document.",
+    )
 
 
 class Flashcard(CamelModel):

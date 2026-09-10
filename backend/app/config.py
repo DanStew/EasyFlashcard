@@ -41,5 +41,34 @@ class Settings(BaseSettings):
     # Prepopulate in-memory developer mode environment with demo folders, sets, and cards
     auto_seed_dev_data: bool = True
 
+    # Vertex AI Configuration
+    vertex_project_id: str | None = None
+    vertex_location: str = "us-central1"
+    gemini_model_name: str = "gemini-3.7-flash"
+    max_review_iterations: int = 2
+
+    # Google OAuth 2.0 Client Credentials (supports OAUTH_CLIENT_ID / GOOGLE_CLIENT_ID)
+    oauth_client_id: str | None = None
+    oauth_client_secret: str | None = None
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+
+    @property
+    def effective_vertex_project_id(self) -> str | None:
+        """Resolve Vertex AI Project ID from vertex_project_id or fallback to firebase_project_id."""
+        return self.vertex_project_id or self.firebase_project_id
+
+    @property
+    def effective_google_client_id(self) -> str | None:
+        """Resolve Google OAuth client ID from either oauth_client_id or google_client_id."""
+        return self.oauth_client_id or self.google_client_id
+
+    @property
+    def effective_google_client_secret(self) -> str | None:
+        """Resolve Google OAuth client secret from either oauth_client_secret or google_client_secret."""
+        return self.oauth_client_secret or self.google_client_secret
+
 
 settings = Settings()
+
+

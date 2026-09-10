@@ -3,12 +3,17 @@
 // ==========================================
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import type { AIGenerationConfig, AIGenerationMode } from '@/components/shared/AIGenerationModal/types';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/useToast';
+import { aiGenerationApi } from '@/services/aiGenerationApi';
 import { linkGoogleDriveAccount, signInWithGoogle } from '@/services/authService';
 import { documentService } from '@/services/documentService';
+import { folderService } from '@/services/folderService';
+import { connectPersistentGoogleDrive } from '@/services/gdriveAuthService';
+import type { AIGenerationEvent, AIGenerationRequest } from '@/types/aiGeneration';
+
 import type { Document, DriveErrorCode, DriveFolderContentsResponse } from '@/types/document';
+import type { Folder } from '@/types/folder';
 import { extractDriveError } from './utils';
 
 // In-memory client-side cache for folder responses
@@ -17,12 +22,16 @@ const CACHE_TTL_MS = 60 * 1000; // 1 minute fresh cache
 
 export function useAIStudio() {
   const { folderId } = useParams<{ folderId?: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { showSuccess, showInfo, showError } = useToast();
+  const { showSuccess, showError } = useToast();
 
   const [contents, setContents] = useState<DriveFolderContentsResponse | null>(null);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isConnectingDrive, setIsConnectingDrive] = useState<boolean>(false);
+  const [needsScopeUpgrade, setNeedsScopeUpgrade] = useState<boolean>(false);
   const [errorCode, setErrorCode] = useState<DriveErrorCode | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isBannerDismissed, setIsBannerDismissed] = useState<boolean>(false);
@@ -31,17 +40,84 @@ export function useAIStudio() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
   const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState<boolean>(false);
   const [isAIGenModalOpen, setIsAIGenModalOpen] = useState<boolean>(false);
-  const [aiGenInitialMode, setAIGenInitialMode] = useState<AIGenerationMode>('prompt');
   const [aiGenSelectedDoc, setAIGenSelectedDoc] = useState<Document | null>(null);
   const [moveItemTarget, setMoveItemTarget] = useState<{ id: string; name: string; isFolder: boolean } | null>(
     null
   );
 
+  // Generation state
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [generationEvent, setGenerationEvent] = useState<AIGenerationEvent | null>(null);
+
   const activeFolderKey = folderId || 'root';
   const isFetchingRef = useRef(false);
 
+  // Automatically open modal if docId is passed in URL query
+  useEffect(() => {
+    const docId = searchParams.get('docId');
+    if (!docId) return;
+
+    let isMounted = true;
+    async function loadPreselectedDoc() {
+      try {
+        const doc = await documentService.getDocumentById(docId!);
+        if (isMounted && doc) {
+          setAIGenSelectedDoc(doc);
+          setGenerationEvent(null);
+          setIsGenerating(false);
+          setIsAIGenModalOpen(true);
+          // Clean up search param from URL without page refresh
+          setSearchParams(
+            (prev) => {
+              const next = new URLSearchParams(prev);
+              next.delete('docId');
+              return next;
+            },
+            { replace: true }
+          );
+        }
+      } catch (err: unknown) {
+        console.error('Failed to pre-select document for AI Studio:', err);
+      }
+    }
+
+    loadPreselectedDoc();
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams, setSearchParams]);
+
+  // Check initial drive auth status for scope upgrade requirement
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const authStatus = await documentService.getDriveAuthStatus();
+        setNeedsScopeUpgrade(Boolean(authStatus.needs_scope_upgrade));
+      } catch {
+        // Fallback
+      }
+    };
+    checkAuthStatus();
+  }, []);
+
+  // Load app folders for destination selection
+  useEffect(() => {
+    const loadFolders = async () => {
+      try {
+        const userFolders = await folderService.listFolders();
+        setFolders(userFolders);
+      } catch {
+        // Fallback
+      }
+    };
+    loadFolders();
+  }, []);
+
   const fetchFolderContents = useCallback(async (targetId?: string, forceRefresh = false) => {
     const key = targetId || 'root';
+    if (forceRefresh) {
+      driveFolderCache.delete(key);
+    }
     const cached = driveFolderCache.get(key);
     const isCacheValid = cached && Date.now() - cached.timestamp < CACHE_TTL_MS;
 
@@ -83,29 +159,58 @@ export function useAIStudio() {
     driveFolderCache.clear();
   }, []);
 
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    driveFolderCache.clear();
+    try {
+      await fetchFolderContents(folderId, true);
+      const authStatus = await documentService.getDriveAuthStatus();
+      setNeedsScopeUpgrade(Boolean(authStatus.needs_scope_upgrade));
+      showSuccess('Google Drive synchronized!');
+    } catch (err: unknown) {
+      const parsed = extractDriveError(err);
+      showError(parsed.message);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [folderId, fetchFolderContents, showSuccess, showError]);
+
   const handleConnectDrive = async () => {
     try {
       setIsConnectingDrive(true);
-      await linkGoogleDriveAccount();
-      showSuccess('Successfully connected Google Drive!');
+      // Step 1: Attempt persistent GIS OAuth code flow with backend refresh token exchange
+      await connectPersistentGoogleDrive();
+      setNeedsScopeUpgrade(false);
+      showSuccess('Google Drive permissions upgraded & connected!');
       invalidateCache();
       await fetchFolderContents(folderId, true);
     } catch {
+      // Step 2: Fallback to Firebase popup link/sign-in if GIS popup is blocked or in mock mode
       try {
-        await signInWithGoogle();
+        await linkGoogleDriveAccount();
+        setNeedsScopeUpgrade(false);
         showSuccess('Connected Google Drive!');
         invalidateCache();
         await fetchFolderContents(folderId, true);
-      } catch (innerErr: unknown) {
-        const parsed = extractDriveError(innerErr);
-        setErrorCode(parsed.code);
-        setErrorMessage(parsed.message);
-        showError(parsed.message);
+      } catch {
+        try {
+          await signInWithGoogle();
+          setNeedsScopeUpgrade(false);
+          showSuccess('Connected Google Drive!');
+          invalidateCache();
+          await fetchFolderContents(folderId, true);
+        } catch (innerErr: unknown) {
+          const parsed = extractDriveError(innerErr);
+          setErrorCode(parsed.code);
+          setErrorMessage(parsed.message);
+          showError(parsed.message);
+        }
       }
     } finally {
       setIsConnectingDrive(false);
     }
   };
+
 
   const handleNavigateFolder = (targetFolderId: string | null) => {
     if (!targetFolderId || targetFolderId === contents?.breadcrumbs[0]?.id) {
@@ -186,37 +291,75 @@ export function useAIStudio() {
     setIsBannerDismissed(true);
   };
 
-  const handleOpenAIGenModal = (mode: AIGenerationMode = 'prompt', doc: Document | null = null) => {
-    setAIGenInitialMode(mode);
+  const handleOpenAIGenModal = (doc: Document | null = null) => {
     setAIGenSelectedDoc(doc);
+    setGenerationEvent(null);
+    setIsGenerating(false);
     setIsAIGenModalOpen(true);
   };
 
-  const handleExecuteAIGeneration = (config: AIGenerationConfig) => {
-    showInfo(
-      `AI Flashcard Studio generation configured (${config.cardCount} cards, ${config.difficulty} difficulty). Generation will execute automatically in the upcoming AI release!`
-    );
+  const handleStartAIGeneration = async (request: AIGenerationRequest) => {
+    try {
+      setIsGenerating(true);
+      setGenerationEvent({
+        stage: 'init',
+        progress: 5,
+        message: 'Initializing AI Multi-Agent Studio...',
+        cardCount: 0,
+      });
+
+      const finalEvent = await aiGenerationApi.generateStream(request, (event) => {
+        setGenerationEvent(event);
+      });
+
+      if (finalEvent.stage === 'completed' && finalEvent.setId) {
+        showSuccess(`Flashcard Set "${finalEvent.setName || 'Study Set'}" synthesized successfully!`);
+      } else if (finalEvent.stage === 'error') {
+        showError(finalEvent.error || finalEvent.message || 'AI Generation failed');
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'AI Generation failed';
+      setGenerationEvent({
+        stage: 'error',
+        progress: 0,
+        message,
+        cardCount: 0,
+        error: message,
+      });
+      showError(message);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleNavigateToSet = (setId: string) => {
+    navigate(`/sets/${setId}`);
   };
 
   return {
     contents,
+    folders,
     isLoading,
+    isRefreshing,
     isConnectingDrive,
+    needsScopeUpgrade,
     errorCode,
     errorMessage,
     isBannerDismissed,
     isUploadModalOpen,
     isNewFolderModalOpen,
     isAIGenModalOpen,
-    aiGenInitialMode,
     aiGenSelectedDoc,
     moveItemTarget,
     activeFolderKey,
+    isGenerating,
+    generationEvent,
     setIsUploadModalOpen,
     setIsNewFolderModalOpen,
     setIsAIGenModalOpen,
     setMoveItemTarget,
     handleConnectDrive,
+    handleRefresh,
     handleDismissBanner,
     handleNavigateFolder,
     handleOpenDocument,
@@ -225,6 +368,7 @@ export function useAIStudio() {
     handleMoveItem,
     handleTrashItem,
     handleOpenAIGenModal,
-    handleExecuteAIGeneration,
+    handleStartAIGeneration,
+    handleNavigateToSet,
   };
 }

@@ -50,6 +50,25 @@
     flex-wrap: wrap;
   }
 
+  &__sync-badge-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    border-radius: $radius-full;
+    display: inline-flex;
+    transition: transform $transition-fast;
+
+    &:hover:not(:disabled) {
+      transform: scale(1.03);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+  }
+
   &__title {
     font-size: $font-size-3xl;
     font-weight: $font-weight-extrabold;
@@ -160,6 +179,12 @@
     font-size: $font-size-xs;
     color: var(--text-secondary);
     margin: 0;
+  }
+
+  &__section-actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
   }
 }
 

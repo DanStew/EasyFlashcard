@@ -10,6 +10,7 @@ from app.models.document import Document
 from app.models.flashcard import Flashcard
 from app.models.folder import Folder
 from app.models.set import FlashcardSet
+from app.models.user_integration import UserIntegration
 
 
 class IFolderRepository(Protocol):
@@ -176,5 +177,21 @@ class IDocumentRepository(Protocol):
 
     async def delete_by_drive_file_id(self, drive_file_id: str, user_id: str) -> bool:
         """Delete document metadata record by Drive file ID."""
+        ...
+
+
+class IUserIntegrationRepository(Protocol):
+    """Interface defining database operations for OAuth credentials and integrations."""
+
+    async def get(self, user_id: str, provider: str = "google_drive") -> UserIntegration | None:
+        """Fetch user integration record by user ID and provider."""
+        ...
+
+    async def save(self, integration: UserIntegration) -> UserIntegration:
+        """Persist or update an integration record."""
+        ...
+
+    async def delete(self, user_id: str, provider: str = "google_drive") -> bool:
+        """Delete an integration record by user ID and provider."""
         ...
 

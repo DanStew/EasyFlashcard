@@ -3,7 +3,7 @@
 // ==========================================
 
 export interface AIGenerationHubProps {
+  onOpenGenerator: () => void;
   onOpenUpload: () => void;
-  onOpenPromptModal: (initialMode?: 'prompt' | 'text' | 'document') => void;
-  onExploreDocuments: () => void;
+  totalDocsCount?: number;
 }

@@ -17,7 +17,7 @@ import {
 } from 'firebase/auth';
 import { auth, isFirebaseConfigured } from './firebase';
 
-const DRIVE_FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
 const GDRIVE_TOKEN_STORAGE_KEY = 'easyflashcard_gdrive_access_token';
 
 /**
@@ -25,7 +25,7 @@ const GDRIVE_TOKEN_STORAGE_KEY = 'easyflashcard_gdrive_access_token';
  */
 export function getGoogleDriveAuthProvider(): GoogleAuthProvider {
   const provider = new GoogleAuthProvider();
-  provider.addScope(DRIVE_FILE_SCOPE);
+  provider.addScope(DRIVE_SCOPE);
   provider.setCustomParameters({
     prompt: 'consent',
   });

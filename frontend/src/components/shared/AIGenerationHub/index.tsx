@@ -2,101 +2,94 @@
 // AIGenerationHub - Presentation Component
 // ==========================================
 
-import { FileText, FileUp, MessageSquarePlus, Sparkles } from 'lucide-react';
+import {
+  FileCheck,
+  FileUp,
+  Sigma,
+  Sparkles,
+  Workflow,
+} from 'lucide-react';
 import { Badge } from '@/components/shared/Badge';
+import { Button } from '@/components/shared/Button';
 import type { AIGenerationHubProps } from './types';
-import { AI_CAPABILITIES } from './utils';
+import { STUDIO_FEATURES } from './utils';
 import './style.scss';
 
 export function AIGenerationHub({
+  onOpenGenerator,
   onOpenUpload,
-  onOpenPromptModal,
-  onExploreDocuments,
+  totalDocsCount = 0,
 }: AIGenerationHubProps) {
-  const handleAction = (id: string) => {
-    switch (id) {
-      case 'document':
-        onOpenUpload();
-        break;
-      case 'prompt':
-        onOpenPromptModal('prompt');
-        break;
-      case 'text':
-        onOpenPromptModal('text');
-        break;
+  const renderFeatureIcon = (name: string) => {
+    switch (name) {
+      case 'FileCheck':
+        return <FileCheck size={18} />;
+      case 'Sigma':
+        return <Sigma size={18} />;
+      case 'Workflow':
+        return <Workflow size={18} />;
       default:
-        onExploreDocuments();
-        break;
-    }
-  };
-
-  const renderIcon = (id: string) => {
-    switch (id) {
-      case 'document':
-        return <FileUp size={20} />;
-      case 'prompt':
-        return <MessageSquarePlus size={20} />;
-      case 'text':
-        return <FileText size={20} />;
-      default:
-        return <Sparkles size={20} />;
+        return <Sparkles size={18} />;
     }
   };
 
   return (
     <section className="ai-generation-hub">
-      <div className="ai-generation-hub__header">
-        <div className="ai-generation-hub__title-group">
-          <div className="ai-generation-hub__icon-mark">
-            <Sparkles size={16} />
+      {/* Studio Banner */}
+      <div className="ai-generation-hub__banner">
+        <div className="ai-generation-hub__banner-content">
+          <div className="ai-generation-hub__badge-row">
+            <Badge variant="primary" size="sm">
+              <Sparkles size={12} />
+              <span>Vertex AI Gemini 3.7 Flash</span>
+            </Badge>
+            <Badge variant="subtle" size="sm">
+              <span>LangGraph Multi-Agent Engine</span>
+            </Badge>
+            {totalDocsCount > 0 && (
+              <Badge variant="success" size="sm">
+                <span>{totalDocsCount} Docs Ready to Ground</span>
+              </Badge>
+            )}
           </div>
-          <div>
-            <h2 className="ai-generation-hub__title">AI Flashcard Generation Hub</h2>
-            <p className="ai-generation-hub__tagline">
-              Generate structured, high-yield flashcard decks with smart AI extraction
-            </p>
+
+          <h2 className="ai-generation-hub__title">AI Flashcard Synthesis Studio</h2>
+          <p className="ai-generation-hub__tagline">
+            Synthesize exhaustive, active recall flashcard sets directly grounded in your Google Drive documents or academic focus prompts.
+          </p>
+
+          <div className="ai-generation-hub__actions-row">
+            <Button
+              variant="gradient"
+              size="lg"
+              leftIcon={<Sparkles size={18} />}
+              onClick={onOpenGenerator}
+            >
+              Synthesize Flashcards with AI
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              leftIcon={<FileUp size={17} />}
+              onClick={onOpenUpload}
+            >
+              Upload Study Document
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="ai-generation-hub__grid">
-        {AI_CAPABILITIES.map((cap) => (
-          <div
-            key={cap.id}
-            className={`ai-generation-hub__card ai-generation-hub__card--${cap.id}`}
-          >
-            <div className="ai-generation-hub__card-top">
-              <div
-                className={`ai-generation-hub__card-icon-box ai-generation-hub__card-icon-box--${cap.id}`}
-              >
-                {renderIcon(cap.id)}
-              </div>
-              <Badge variant={cap.badgeVariant} size="sm">
-                {cap.badge}
-              </Badge>
+      {/* Feature Highlights Grid */}
+      <div className="ai-generation-hub__features-grid">
+        {STUDIO_FEATURES.map((feat) => (
+          <div key={feat.id} className="ai-generation-hub__feature-card">
+            <div className="ai-generation-hub__feature-icon-wrap">
+              {renderFeatureIcon(feat.iconName)}
             </div>
-
-            <div className="ai-generation-hub__card-body">
-              <h3 className="ai-generation-hub__card-title">{cap.title}</h3>
-              <p className="ai-generation-hub__card-desc">{cap.description}</p>
+            <div className="ai-generation-hub__feature-text">
+              <h3 className="ai-generation-hub__feature-title">{feat.title}</h3>
+              <p className="ai-generation-hub__feature-desc">{feat.description}</p>
             </div>
-
-            <div className="ai-generation-hub__card-footer">
-              <span className="ai-generation-hub__card-pill">{cap.highlightPill}</span>
-            </div>
-
-            <button
-              type="button"
-              className={`ai-generation-hub__action-btn ${
-                cap.id === 'prompt'
-                  ? 'ai-generation-hub__action-btn--gradient'
-                  : 'ai-generation-hub__action-btn--outline'
-              }`}
-              onClick={() => handleAction(cap.id)}
-            >
-              <Sparkles size={15} />
-              <span>{cap.actionText}</span>
-            </button>
           </div>
         ))}
       </div>
