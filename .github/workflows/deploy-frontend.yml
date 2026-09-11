@@ -1,11 +1,11 @@
-name: Deploy Backend to Google Cloud Run
+name: Deploy Frontend to Google Cloud Run
 
 on:
   workflow_dispatch:
   workflow_call:
     outputs:
       service_url:
-        description: "The deployed Cloud Run backend service URL"
+        description: "The deployed Cloud Run frontend service URL"
         value: ${{ jobs.deploy.outputs.service_url }}
 
 permissions:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   deploy:
-    name: Build & Deploy Backend to Cloud Run
+    name: Build & Deploy Frontend to Cloud Run
     runs-on: ubuntu-latest
     outputs:
       service_url: ${{ steps.deploy.outputs.SERVICE_URL }}
@@ -27,7 +27,7 @@ jobs:
       - name: Validate Required Secrets
         shell: bash
         run: |
-          echo "Validating required GitHub Secrets for backend deployment..."
+          echo "Validating required GitHub Secrets for frontend deployment..."
           MISSING=""
 
           if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
@@ -70,21 +70,30 @@ jobs:
         run: |
           gcloud auth configure-docker "${{ secrets.GCP_REGION }}-docker.pkg.dev" --quiet
 
-      # Build and Push Docker image to Artifact Registry
+      # Build and Push Docker image to Artifact Registry with Vite build arguments
       - name: Build and Push Docker Image
         shell: bash
         run: |
-          SERVICE_NAME="${{ secrets.GCP_BACKEND_SERVICE_NAME || secrets.GCP_SERVICE_NAME || 'easyflashcard-backend' }}"
+          SERVICE_NAME="${{ secrets.GCP_FRONTEND_SERVICE_NAME || 'easyflashcard-frontend' }}"
           IMAGE_TAG="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/${SERVICE_NAME}:${{ github.sha }}"
           LATEST_TAG="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/${SERVICE_NAME}:latest"
 
-          echo "Building backend Docker image (${SERVICE_NAME})..."
+          echo "Building frontend Docker image (${SERVICE_NAME}) with build-time environment arguments..."
+          
           docker build \
+            --build-arg VITE_API_BASE_URL="${{ secrets.VITE_API_BASE_URL || vars.VITE_API_BASE_URL }}" \
+            --build-arg VITE_FIREBASE_API_KEY="${{ secrets.VITE_FIREBASE_API_KEY || vars.VITE_FIREBASE_API_KEY }}" \
+            --build-arg VITE_FIREBASE_AUTH_DOMAIN="${{ secrets.VITE_FIREBASE_AUTH_DOMAIN || vars.VITE_FIREBASE_AUTH_DOMAIN }}" \
+            --build-arg VITE_FIREBASE_PROJECT_ID="${{ secrets.VITE_FIREBASE_PROJECT_ID || vars.VITE_FIREBASE_PROJECT_ID || secrets.GCP_PROJECT_ID }}" \
+            --build-arg VITE_FIREBASE_STORAGE_BUCKET="${{ secrets.VITE_FIREBASE_STORAGE_BUCKET || vars.VITE_FIREBASE_STORAGE_BUCKET }}" \
+            --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID="${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID || vars.VITE_FIREBASE_MESSAGING_SENDER_ID }}" \
+            --build-arg VITE_FIREBASE_APP_ID="${{ secrets.VITE_FIREBASE_APP_ID || vars.VITE_FIREBASE_APP_ID }}" \
+            --build-arg VITE_OAUTH_CLIENT_ID="${{ secrets.VITE_OAUTH_CLIENT_ID || vars.VITE_OAUTH_CLIENT_ID }}" \
             -t "${IMAGE_TAG}" \
             -t "${LATEST_TAG}" \
-            ./backend
+            ./frontend
 
-          echo "Pushing backend images to Artifact Registry..."
+          echo "Pushing frontend images to Artifact Registry..."
           docker push "${IMAGE_TAG}"
           docker push "${LATEST_TAG}"
 
@@ -93,26 +102,10 @@ jobs:
         id: deploy
         shell: bash
         run: |
-          SERVICE_NAME="${{ secrets.GCP_BACKEND_SERVICE_NAME || secrets.GCP_SERVICE_NAME || 'easyflashcard-backend' }}"
+          SERVICE_NAME="${{ secrets.GCP_FRONTEND_SERVICE_NAME || 'easyflashcard-frontend' }}"
           IMAGE_TAG="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_ARTIFACT_REPO }}/${SERVICE_NAME}:${{ github.sha }}"
 
           echo "Deploying ${IMAGE_TAG} to Cloud Run service ${SERVICE_NAME} in ${{ secrets.GCP_REGION }}..."
-
-          # Build comma-separated environment variables for Cloud Run
-          ENV_VARS="ENVIRONMENT=production,STORAGE_BACKEND=firestore,FIREBASE_PROJECT_ID=${{ secrets.GCP_PROJECT_ID }},FIRESTORE_DATABASE=(default),APP_NAME=EasyFlashcard API"
-          
-          if [ -n "${{ secrets.GOOGLE_CLIENT_ID || vars.VITE_OAUTH_CLIENT_ID }}" ]; then
-            CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID || vars.VITE_OAUTH_CLIENT_ID }}"
-            ENV_VARS="${ENV_VARS},GOOGLE_CLIENT_ID=${CLIENT_ID}"
-          fi
-
-          if [ -n "${{ secrets.GOOGLE_CLIENT_SECRET }}" ]; then
-            ENV_VARS="${ENV_VARS},GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}"
-          fi
-
-          if [ -n "${{ secrets.VERTEX_PROJECT_ID }}" ]; then
-            ENV_VARS="${ENV_VARS},VERTEX_PROJECT_ID=${{ secrets.VERTEX_PROJECT_ID }}"
-          fi
 
           gcloud run deploy "${SERVICE_NAME}" \
             --image "${IMAGE_TAG}" \
@@ -120,32 +113,30 @@ jobs:
             --project "${{ secrets.GCP_PROJECT_ID }}" \
             --platform managed \
             --allow-unauthenticated \
-            --port 8000 \
-            --set-env-vars "${ENV_VARS}" \
+            --port 80 \
             --format 'value(status.url)' > service_url.txt
 
           SERVICE_URL=$(cat service_url.txt)
           echo "SERVICE_URL=${SERVICE_URL}" >> $GITHUB_OUTPUT
-          echo "Backend deployed successfully to: ${SERVICE_URL}"
+          echo "Frontend deployed successfully to: ${SERVICE_URL}"
 
-      # Health check against deployed Cloud Run service
-      - name: Verify Health Endpoint
+      # Verify Frontend HTTP response
+      - name: Verify Web Frontend Endpoint
         shell: bash
         run: |
           SERVICE_URL="${{ steps.deploy.outputs.SERVICE_URL }}"
-          echo "Testing health check on ${SERVICE_URL}/health..."
+          echo "Testing HTTP response on ${SERVICE_URL}..."
 
-          HEALTH_STATUS=$(curl -sf "${SERVICE_URL}/health" || echo "FAILED")
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${SERVICE_URL}" || echo "000")
 
-          if [ "$HEALTH_STATUS" = "FAILED" ]; then
-            echo "::warning::Health check did not respond immediately. Cloud Run cold start may still be in progress."
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "Web frontend is active and responding (HTTP 200)."
           else
-            echo "Health check succeeded: ${HEALTH_STATUS}"
+            echo "::warning::Web endpoint returned HTTP status: ${HTTP_CODE}. Cloud Run container may still be initialising."
           fi
 
           echo ""
           echo "============================================================"
-          echo "Backend Cloud Run Deployment Complete!"
+          echo "Frontend Cloud Run Deployment Complete!"
           echo "Service URL: ${SERVICE_URL}"
-          echo "API Base Endpoint: ${SERVICE_URL}/api/v1"
           echo "============================================================"

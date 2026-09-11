@@ -1,0 +1,78 @@
+name: Deploy Application to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - '.github/workflows/deploy.yml'
+      - '.github/workflows/deploy-backend.yml'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Select component(s) to deploy"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - backend
+          - frontend
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  detect-changes:
+    name: Detect Changed Components
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Check Component Path Changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/workflows/deploy-backend.yml'
+              - '.github/workflows/deploy.yml'
+            frontend:
+              - 'frontend/**'
+              - '.github/workflows/deploy-frontend.yml'
+              - '.github/workflows/deploy.yml'
+
+  deploy-backend:
+    name: Deploy Backend
+    needs: detect-changes
+    if: |
+      always() &&
+      !cancelled() &&
+      (
+        (github.event_name == 'workflow_dispatch' && (inputs.target == 'all' || inputs.target == 'backend')) ||
+        (github.event_name == 'push' && needs.detect-changes.outputs.backend == 'true')
+      )
+    uses: ./.github/workflows/deploy-backend.yml
+    secrets: inherit
+
+  deploy-frontend:
+    name: Deploy Frontend
+    needs: detect-changes
+    if: |
+      always() &&
+      !cancelled() &&
+      (
+        (github.event_name == 'workflow_dispatch' && (inputs.target == 'all' || inputs.target == 'frontend')) ||
+        (github.event_name == 'push' && needs.detect-changes.outputs.frontend == 'true')
+      )
+    uses: ./.github/workflows/deploy-frontend.yml
+    secrets: inherit
