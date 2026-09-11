@@ -14,6 +14,9 @@ COPY package.json package-lock.json ./
 # Clean dependency installation
 RUN npm ci
 
+# Copy application source files
+COPY . .
+
 # Accept build-time arguments for Vite environment variables
 ARG VITE_API_BASE_URL
 ARG VITE_FIREBASE_API_KEY
