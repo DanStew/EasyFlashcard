@@ -43,8 +43,11 @@ RUN npm run build
 # Stage 2: Serve static bundle via Nginx
 FROM nginx:alpine
 
-# Copy custom Nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy custom Nginx configuration template for dynamic PORT substitution
+COPY nginx.conf /etc/nginx/templates/default.conf.template
+
+# Default listening port (Cloud Run will override with $PORT at runtime)
+ENV PORT=80
 
 # Copy build artifacts from builder stage to Nginx webroot
 COPY --from=builder /app/dist /usr/share/nginx/html
