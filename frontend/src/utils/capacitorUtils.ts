@@ -36,10 +36,26 @@ export function getPlatformName(): 'android' | 'ios' | 'web' {
  * Resolves the configured environment API base URL from build-time Vite environment variables.
  * Checks `VITE_API_BASE_URL` or `VITE_CLOUD_RUN_BASE_URL`.
  */
+/**
+ * Normalizes an API base URL ensuring it includes the /api/v1 prefix.
+ */
+export function normalizeApiBaseUrl(url: string): string {
+  let sanitized = url.trim().replace(/\/+$/, '');
+  if (!sanitized) return '';
+  if (!sanitized.endsWith('/api/v1')) {
+    sanitized = `${sanitized}/api/v1`;
+  }
+  return sanitized;
+}
+
+/**
+ * Resolves the configured environment API base URL from build-time Vite environment variables.
+ * Checks `VITE_API_BASE_URL` or `VITE_CLOUD_RUN_BASE_URL`.
+ */
 export function getEnvironmentApiBaseUrl(): string {
   const envUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_CLOUD_RUN_BASE_URL;
   if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
-    return envUrl.trim().replace(/\/+$/, '');
+    return normalizeApiBaseUrl(envUrl);
   }
   return '';
 }
@@ -50,7 +66,7 @@ export function getEnvironmentApiBaseUrl(): string {
 export function getLanApiBaseUrl(): string {
   const lanUrl = import.meta.env.VITE_LAN_BASE_URL;
   if (lanUrl && typeof lanUrl === 'string' && lanUrl.trim().length > 0) {
-    return lanUrl.trim().replace(/\/+$/, '');
+    return normalizeApiBaseUrl(lanUrl);
   }
   return DEFAULT_ANDROID_LAN_BASE_URL;
 }
@@ -78,7 +94,7 @@ export function getApiBaseUrl(): string {
       ) {
         localStorage.removeItem(STORAGE_KEY_API_BASE_URL);
       } else {
-        return customUrl.trim().replace(/\/+$/, '');
+        return normalizeApiBaseUrl(customUrl);
       }
     }
   } catch {
@@ -102,7 +118,7 @@ export function getApiBaseUrl(): string {
  * Persists a new API base URL to local storage and dispatches a change event.
  */
 export function setApiBaseUrl(url: string): void {
-  const sanitized = url.trim().replace(/\/+$/, '');
+  const sanitized = normalizeApiBaseUrl(url);
   try {
     localStorage.setItem(STORAGE_KEY_API_BASE_URL, sanitized);
   } catch {
