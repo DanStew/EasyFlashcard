@@ -59,9 +59,10 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
     try {
       setIsLoadingTree(true);
       const tree = await folderService.getFolderTree();
-      setFolderTree(tree);
+      setFolderTree(Array.isArray(tree) ? tree : []);
     } catch (err: unknown) {
       console.error('Failed to load folder tree', err);
+      setFolderTree([]);
     } finally {
       setIsLoadingTree(false);
     }

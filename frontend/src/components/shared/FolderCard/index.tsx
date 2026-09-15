@@ -38,7 +38,7 @@ export function FolderCard({
   if (onRename) {
     menuItems.push({
       id: 'rename',
-      label: 'Rename',
+      label: 'Rename Folder',
       icon: <Edit2 size={14} />,
       onClick: () => onRename(folder),
     });
@@ -47,7 +47,7 @@ export function FolderCard({
   if (onDelete) {
     menuItems.push({
       id: 'delete',
-      label: 'Delete',
+      label: 'Delete Folder',
       icon: <Trash2 size={14} />,
       variant: 'danger',
       onClick: () => onDelete(folder),

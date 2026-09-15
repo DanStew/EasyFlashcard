@@ -111,7 +111,7 @@ export function FolderTreeNav({
     return <div className="folder-tree-nav__empty">Loading folders...</div>;
   }
 
-  if (!tree || tree.length === 0) {
+  if (!tree || !Array.isArray(tree) || tree.length === 0) {
     return <div className="folder-tree-nav__empty">No folders created yet</div>;
   }
 

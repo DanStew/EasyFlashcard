@@ -10,6 +10,7 @@ export function findFolderAncestors(
   targetId: string,
   currentTrail: FolderTreeItem[] = []
 ): FolderTreeItem[] | null {
+  if (!tree || !Array.isArray(tree)) return null;
   for (const item of tree) {
     const nextTrail = [...currentTrail, item];
     if (item.id === targetId) {

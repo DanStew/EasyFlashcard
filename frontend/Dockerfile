@@ -27,16 +27,6 @@ ARG VITE_FIREBASE_MESSAGING_SENDER_ID
 ARG VITE_FIREBASE_APP_ID
 ARG VITE_OAUTH_CLIENT_ID
 
-# Set build environment variables so Vite inlines them into the production bundle
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
-    VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY \
-    VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN \
-    VITE_FIREBASE_PROJECT_ID=$VITE_FIREBASE_PROJECT_ID \
-    VITE_FIREBASE_STORAGE_BUCKET=$VITE_FIREBASE_STORAGE_BUCKET \
-    VITE_FIREBASE_MESSAGING_SENDER_ID=$VITE_FIREBASE_MESSAGING_SENDER_ID \
-    VITE_FIREBASE_APP_ID=$VITE_FIREBASE_APP_ID \
-    VITE_OAUTH_CLIENT_ID=$VITE_OAUTH_CLIENT_ID
-
 # Build production bundle using Vite & TypeScript
 RUN npm run build
 
@@ -46,8 +36,9 @@ FROM nginx:alpine
 # Copy custom Nginx configuration template for dynamic PORT substitution
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 
-# Default listening port (Cloud Run will override with $PORT at runtime)
-ENV PORT=80
+# Default listening port and backend upstream URL (Cloud Run will override with $PORT at runtime)
+ENV PORT=80 \
+    BACKEND_URL=http://backend:8000
 
 # Copy build artifacts from builder stage to Nginx webroot
 COPY --from=builder /app/dist /usr/share/nginx/html

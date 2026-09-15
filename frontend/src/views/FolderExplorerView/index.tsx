@@ -65,14 +65,17 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
 
   // Modal states
   const [isNewSubfolderOpen, setIsNewSubfolderOpen] = useState(false);
+  const [targetParentFolder, setTargetParentFolder] = useState<Folder | null>(null);
   const [subfolderName, setSubfolderName] = useState('');
   const [isCreatingSubfolder, setIsCreatingSubfolder] = useState(false);
 
   const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [folderToRename, setFolderToRename] = useState<Folder | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [isRenaming, setIsRenaming] = useState(false);
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [folderToDelete, setFolderToDelete] = useState<Folder | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Sync active folder ID with WorkspaceContext for sidebar highlight
@@ -138,19 +141,32 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
     : getBreadcrumbsForFolder(activeFolderId, currentFolder);
   const parentInfo = findParentFolderInfo(folderTree, currentFolder);
 
+  // Subfolder modal handlers
+  const handleOpenCreateSubfolder = (targetFolder?: Folder) => {
+    setTargetParentFolder(targetFolder || null);
+    setSubfolderName('');
+    setIsNewSubfolderOpen(true);
+  };
+
+  const handleCloseCreateSubfolder = () => {
+    setIsNewSubfolderOpen(false);
+    setTargetParentFolder(null);
+    setSubfolderName('');
+  };
+
   const handleCreateSubfolder = async (e: FormEvent) => {
     e.preventDefault();
     if (!subfolderName.trim()) return;
 
+    const parentId = targetParentFolder ? targetParentFolder.id : activeFolderId;
     try {
       setIsCreatingSubfolder(true);
       const created = await folderService.createFolder({
         name: subfolderName.trim(),
-        parentId: activeFolderId,
+        parentId,
       });
       showSuccess(`Folder "${created.name}" created!`);
-      setSubfolderName('');
-      setIsNewSubfolderOpen(false);
+      handleCloseCreateSubfolder();
       refreshFolderTree();
       loadFolderData();
     } catch (err: unknown) {
@@ -160,19 +176,38 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
     }
   };
 
+  // Rename modal handlers
+  const handleOpenRename = (folder?: Folder) => {
+    const target = folder || currentFolder;
+    if (!target) return;
+    setFolderToRename(target);
+    setRenameValue(target.name);
+    setIsRenameOpen(true);
+  };
+
+  const handleCloseRename = () => {
+    setIsRenameOpen(false);
+    setFolderToRename(null);
+    setRenameValue('');
+  };
+
   const handleRename = async (e: FormEvent) => {
     e.preventDefault();
-    if (!activeFolderId || !renameValue.trim()) return;
+    const target = folderToRename || currentFolder;
+    if (!target || !renameValue.trim()) return;
 
     try {
       setIsRenaming(true);
-      const updated = await folderService.updateFolder(activeFolderId, {
+      const updated = await folderService.updateFolder(target.id, {
         name: renameValue.trim(),
       });
       showSuccess(`Renamed to "${updated.name}"`);
-      setCurrentFolder(updated);
-      setIsRenameOpen(false);
+      if (target.id === activeFolderId) {
+        setCurrentFolder(updated);
+      }
+      handleCloseRename();
       refreshFolderTree();
+      loadFolderData();
     } catch (err: unknown) {
       showError(err instanceof Error ? err.message : 'Failed to rename folder');
     } finally {
@@ -180,19 +215,39 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
     }
   };
 
+  // Delete modal handlers
+  const handleOpenDelete = (folder?: Folder) => {
+    const target = folder || currentFolder;
+    if (!target) return;
+    setFolderToDelete(target);
+    setIsDeleteOpen(true);
+  };
+
+  const handleCloseDelete = () => {
+    setIsDeleteOpen(false);
+    setFolderToDelete(null);
+  };
+
   const handleDelete = async () => {
-    if (!activeFolderId) return;
+    const target = folderToDelete || currentFolder;
+    if (!target) return;
+
+    const isCurrentActiveFolder = target.id === activeFolderId;
 
     try {
       setIsDeleting(true);
-      await folderService.deleteFolder(activeFolderId, false);
-      showSuccess('Folder deleted');
-      setIsDeleteOpen(false);
+      await folderService.deleteFolder(target.id, false);
+      showSuccess(`Folder "${target.name}" deleted`);
+      handleCloseDelete();
       refreshFolderTree();
-      if (parentInfo?.id) {
-        navigate(`/folder/${parentInfo.id}`);
+      if (isCurrentActiveFolder) {
+        if (parentInfo?.id) {
+          navigate(`/folder/${parentInfo.id}`);
+        } else {
+          navigate('/');
+        }
       } else {
-        navigate('/');
+        loadFolderData();
       }
     } catch (err: unknown) {
       showError(err instanceof Error ? err.message : 'Failed to delete folder');
@@ -335,7 +390,7 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
             variant="secondary"
             size="md"
             leftIcon={<FolderPlus size={16} />}
-            onClick={() => setIsNewSubfolderOpen(true)}
+            onClick={() => handleOpenCreateSubfolder()}
           >
             {activeFolderId ? 'New Subfolder' : 'New Folder'}
           </Button>
@@ -346,7 +401,7 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
                 variant="ghost"
                 size="md"
                 leftIcon={<Edit2 size={15} />}
-                onClick={() => setIsRenameOpen(true)}
+                onClick={() => handleOpenRename()}
               >
                 Rename
               </Button>
@@ -354,7 +409,7 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
                 variant="danger"
                 size="md"
                 leftIcon={<Trash2 size={15} />}
-                onClick={() => setIsDeleteOpen(true)}
+                onClick={() => handleOpenDelete()}
               >
                 Delete
               </Button>
@@ -409,7 +464,7 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
                 variant="secondary"
                 size="md"
                 leftIcon={<FolderPlus size={16} />}
-                onClick={() => setIsNewSubfolderOpen(true)}
+                onClick={() => handleOpenCreateSubfolder()}
               >
                 {activeFolderId ? 'New Subfolder' : 'New Folder'}
               </Button>
@@ -435,10 +490,9 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
                     previewItems={stats.previewItems}
                     viewMode="list"
                     onClick={() => navigate(`/folder/${folder.id}`)}
-                    onCreateSubfolder={() => {
-                      setCurrentFolder(folder);
-                      setIsNewSubfolderOpen(true);
-                    }}
+                    onCreateSubfolder={handleOpenCreateSubfolder}
+                    onRename={handleOpenRename}
+                    onDelete={handleOpenDelete}
                   />
                 );
               })}
@@ -491,10 +545,9 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
                       previewItems={stats.previewItems}
                       viewMode="grid"
                       onClick={() => navigate(`/folder/${folder.id}`)}
-                      onCreateSubfolder={() => {
-                        setCurrentFolder(folder);
-                        setIsNewSubfolderOpen(true);
-                      }}
+                      onCreateSubfolder={handleOpenCreateSubfolder}
+                      onRename={handleOpenRename}
+                      onDelete={handleOpenDelete}
                     />
                   );
                 })}
@@ -535,9 +588,9 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
       {/* Subfolder Creation Modal */}
       <Modal
         isOpen={isNewSubfolderOpen}
-        onClose={() => setIsNewSubfolderOpen(false)}
-        title={activeFolderId ? 'Create Subfolder' : 'Create Folder'}
-        subtitle={`Create a folder in ${currentFolder?.name || 'My Library'}`}
+        onClose={handleCloseCreateSubfolder}
+        title={targetParentFolder || activeFolderId ? 'Create Subfolder' : 'Create Folder'}
+        subtitle={`Create a folder in ${targetParentFolder?.name || currentFolder?.name || 'My Library'}`}
       >
         <form onSubmit={handleCreateSubfolder}>
           <Input
@@ -554,7 +607,7 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setIsNewSubfolderOpen(false)}
+              onClick={handleCloseCreateSubfolder}
               disabled={isCreatingSubfolder}
             >
               Cancel
@@ -574,8 +627,9 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
       {/* Rename Modal */}
       <Modal
         isOpen={isRenameOpen}
-        onClose={() => setIsRenameOpen(false)}
+        onClose={handleCloseRename}
         title="Rename Folder"
+        subtitle={`Rename "${folderToRename?.name || currentFolder?.name || ''}"`}
       >
         <form onSubmit={handleRename}>
           <Input
@@ -591,7 +645,7 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setIsRenameOpen(false)}
+              onClick={handleCloseRename}
               disabled={isRenaming}
             >
               Cancel
@@ -611,16 +665,16 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
+        onClose={handleCloseDelete}
         title="Delete Folder"
-        subtitle={`Are you sure you want to delete "${currentFolder?.name}"?`}
+        subtitle={`Are you sure you want to delete "${folderToDelete?.name || currentFolder?.name || 'this folder'}"?`}
       >
         <p>Child sets and subfolders will be moved to the parent directory.</p>
         <div className="folder-explorer-view__modal-actions">
           <Button
             type="button"
             variant="ghost"
-            onClick={() => setIsDeleteOpen(false)}
+            onClick={handleCloseDelete}
             disabled={isDeleting}
           >
             Cancel
