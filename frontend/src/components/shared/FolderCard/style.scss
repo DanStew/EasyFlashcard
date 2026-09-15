@@ -16,6 +16,10 @@
     box-shadow: var(--shadow-md);
   }
 
+  &:active {
+    transform: scale(0.985);
+  }
+
   &:hover,
   &:focus-within {
     z-index: 10;
@@ -164,8 +168,8 @@
     z-index: 2;
 
     .folder-card__menu-btn {
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       border-radius: $radius-sm;
       background: transparent;
       border: none;
@@ -175,6 +179,11 @@
       justify-content: center;
       cursor: pointer;
       transition: all $transition-fast;
+
+      @media (pointer: coarse) {
+        min-width: 44px;
+        min-height: 44px;
+      }
 
       &:hover {
         background: var(--bg-surface-sunken);

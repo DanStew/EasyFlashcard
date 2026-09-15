@@ -20,6 +20,7 @@
     "@capacitor/core": "^8.5.1",
     "@capacitor/keyboard": "^8.0.5",
     "@capacitor/status-bar": "^8.0.3",
+    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "axios": "^1.20.0",
     "firebase": "^12.19.0",
     "katex": "^0.18.7",
@@ -45,5 +46,10 @@
     "oxlint": "^1.79.0",
     "typescript": "~6.0.2",
     "vite": "^8.2.2"
+  },
+  "overrides": {
+    "@codetrix-studio/capacitor-google-auth": {
+      "@capacitor/core": "$@capacitor/core"
+    }
   }
 }

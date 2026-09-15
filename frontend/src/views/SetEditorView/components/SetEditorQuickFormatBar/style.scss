@@ -1,0 +1,57 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.set-editor-quick-format-bar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-1;
+  overflow-x: auto;
+  padding: $spacing-1 2px;
+  @include custom-scrollbar(4px);
+  -webkit-overflow-scrolling: touch;
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 10px;
+    height: 32px;
+    border-radius: $radius-md;
+    background-color: var(--bg-surface-raised);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all $transition-fast;
+    flex-shrink: 0;
+
+    @media (pointer: coarse) {
+      min-height: 36px;
+      padding: 6px 12px;
+    }
+
+    &:hover:not(:disabled) {
+      background-color: var(--bg-hover);
+      color: var(--text-primary);
+      border-color: var(--color-primary-subtle);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    &--latex {
+      font-family: $font-family-mono;
+      color: var(--color-primary);
+      font-weight: $font-weight-bold;
+    }
+  }
+}

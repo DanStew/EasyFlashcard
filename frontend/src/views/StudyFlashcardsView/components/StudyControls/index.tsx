@@ -5,6 +5,7 @@ import {
   Undo2,
   X,
 } from 'lucide-react';
+import { useHaptics } from '@/hooks/useHaptics';
 import type { StudyControlsProps } from './types';
 import { getControlKeyLabels } from './utils';
 import './style.scss';
@@ -20,6 +21,32 @@ export function StudyControls({
   disabled = false,
 }: StudyControlsProps) {
   const keys = getControlKeyLabels();
+  const { hapticTick, hapticSuccess, hapticWarning, hapticSelection } = useHaptics();
+
+  const handleUndo = () => {
+    hapticTick();
+    onUndo();
+  };
+
+  const handleRetry = () => {
+    hapticWarning();
+    onRetry();
+  };
+
+  const handleFlip = () => {
+    hapticTick();
+    onFlip();
+  };
+
+  const handleMaster = () => {
+    hapticSuccess();
+    onMaster();
+  };
+
+  const handleStar = () => {
+    hapticSelection();
+    onToggleStar();
+  };
 
   return (
     <div className="study-controls" role="toolbar" aria-label="Flashcard study controls">
@@ -27,7 +54,7 @@ export function StudyControls({
       <button
         type="button"
         className="study-controls__icon-btn"
-        onClick={onUndo}
+        onClick={handleUndo}
         disabled={!canUndo || disabled}
         title={`Undo last action (${keys.undo})`}
         aria-label="Undo last card action"
@@ -40,7 +67,7 @@ export function StudyControls({
         <button
           type="button"
           className="study-controls__btn study-controls__btn--retry"
-          onClick={onRetry}
+          onClick={handleRetry}
           disabled={disabled}
           title={`Needs Practice (${keys.retry})`}
           aria-label="Needs practice - swipe left"
@@ -53,7 +80,7 @@ export function StudyControls({
         <button
           type="button"
           className="study-controls__btn study-controls__btn--flip"
-          onClick={onFlip}
+          onClick={handleFlip}
           disabled={disabled}
           title={`Flip card (${keys.flip})`}
           aria-label="Flip card to other side"
@@ -66,7 +93,7 @@ export function StudyControls({
         <button
           type="button"
           className="study-controls__btn study-controls__btn--master"
-          onClick={onMaster}
+          onClick={handleMaster}
           disabled={disabled}
           title={`Mastered (${keys.master})`}
           aria-label="Mastered - swipe right"
@@ -83,7 +110,7 @@ export function StudyControls({
         className={`study-controls__icon-btn ${
           isStarred ? 'study-controls__icon-btn--starred' : ''
         }`}
-        onClick={onToggleStar}
+        onClick={handleStar}
         disabled={disabled}
         title={isStarred ? 'Remove star' : 'Star this card'}
         aria-label={isStarred ? 'Unstar flashcard' : 'Star flashcard'}

@@ -10,6 +10,12 @@
   margin-bottom: $spacing-5;
   flex-wrap: wrap;
 
+  @media (max-width: $breakpoint-md) {
+    margin-bottom: $spacing-3;
+    padding: 0;
+    gap: $spacing-2;
+  }
+
   &__left {
     display: flex;
     align-items: center;

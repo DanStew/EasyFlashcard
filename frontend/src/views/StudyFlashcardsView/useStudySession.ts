@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ApiError } from '@/services/apiClient';
 import { flashcardService } from '@/services/flashcardService';
+import { quickAccessService } from '@/services/quickAccessService';
 import { setService } from '@/services/setService';
 import type { Flashcard } from '@/types/flashcard';
 import type { SetModel } from '@/types/set';
@@ -75,6 +76,9 @@ export function useStudySession(
       setSet(loadedSets[0] || null);
       setSetNameMap(nameMap);
       setCards(combinedCards);
+      loadedSets.forEach((s) => {
+        quickAccessService.recordActivity(s.id, 'set', s.name, 'study');
+      });
       setQueue(initialShuffle ? shuffleArray(combinedCards) : combinedCards);
       setIsShuffled(initialShuffle);
       setCurrentIndex(0);

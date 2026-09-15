@@ -5,14 +5,32 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--bg-app);
   position: relative;
   overflow-x: clip;
+
+  &--study-mode {
+    .app-body {
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    .app-main {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .app-content {
+      padding: 0;
+      max-width: 100%;
+    }
+  }
 }
 
-// Top Navigation Bar (Uniform 68px height across the full app)
+// Top Navigation Bar (Uniform 68px height + safe-area-inset-top across the full app)
 .app-topbar {
-  height: 68px;
+  height: calc(68px + var(--sat));
   position: sticky;
   top: 0;
   z-index: $z-index-sticky;
@@ -23,7 +41,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 $spacing-6;
+  padding-top: var(--sat);
+  padding-left: max(#{$spacing-6}, var(--sal));
+  padding-right: max(#{$spacing-6}, var(--sar));
+  padding-bottom: 0;
   gap: $spacing-4;
 
   &__brand-group {
@@ -110,7 +131,7 @@
 .app-body {
   display: flex;
   flex: 1;
-  min-height: calc(100vh - 68px);
+  min-height: calc(100vh - (68px + var(--sat)));
   position: relative;
 }
 
@@ -123,8 +144,8 @@
   flex-direction: column;
   flex-shrink: 0;
   position: sticky;
-  top: 68px;
-  height: calc(100vh - 68px);
+  top: calc(68px + var(--sat));
+  height: calc(100vh - (68px + var(--sat)));
   z-index: #{$z-index-sticky - 1};
   transition: width $transition-normal, opacity $transition-normal;
   overflow: hidden;
@@ -211,10 +232,11 @@
     color: var(--text-tertiary);
   }
 
-  &__tree-container {
+  &__tree-container,
+  &__quick-access-container {
     flex: 1;
     overflow-y: auto;
-    padding: $spacing-2 $spacing-5;
+    padding: $spacing-2 $spacing-4;
     min-width: 280px;
     @include custom-scrollbar;
   }
@@ -403,6 +425,10 @@
   max-width: 1400px;
   width: 100%;
   margin: 0 auto;
+
+  @include breakpoint-md {
+    padding-bottom: calc(80px + var(--sab)); // Clear floating mobile bottom nav
+  }
 }
 
 // Form and Modal Helpers
@@ -427,7 +453,10 @@
 
 @include breakpoint-lg {
   .app-topbar {
-    padding: 0 $spacing-4;
+    padding-top: var(--sat);
+    padding-left: max(#{$spacing-4}, var(--sal));
+    padding-right: max(#{$spacing-4}, var(--sar));
+    padding-bottom: 0;
 
     &__brand-group {
       width: auto;
@@ -437,7 +466,7 @@
   .app-sidebar {
     position: fixed;
     left: 0;
-    top: 68px;
+    top: calc(68px + var(--sat));
     bottom: 0;
     margin-left: 0 !important;
     width: 280px !important;
@@ -463,7 +492,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    top: 68px;
+    top: calc(68px + var(--sat));
     background-color: var(--bg-modal-backdrop);
     z-index: #{$z-index-drawer - 1};
     animation: fadeIn $transition-fast forwards;
@@ -472,7 +501,10 @@
 
 @include breakpoint-md {
   .app-topbar {
-    padding: 0 $spacing-3;
+    padding-top: var(--sat);
+    padding-left: max(#{$spacing-3}, var(--sal));
+    padding-right: max(#{$spacing-3}, var(--sar));
+    padding-bottom: 0;
     gap: $spacing-2;
 
     &__center {

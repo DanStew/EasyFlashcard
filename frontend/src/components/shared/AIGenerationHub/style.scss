@@ -118,3 +118,28 @@
     margin: 0;
   }
 }
+
+@include breakpoint-md {
+  .ai-generation-hub {
+    &__banner {
+      padding: $spacing-3 $spacing-4;
+      border-radius: $radius-lg;
+    }
+
+    &__title {
+      font-size: $font-size-md;
+    }
+
+    &__tagline {
+      display: none;
+    }
+
+    &__actions-row {
+      margin-top: $spacing-1;
+    }
+
+    &__features-grid {
+      display: none;
+    }
+  }
+}

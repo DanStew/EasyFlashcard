@@ -19,6 +19,8 @@ export const SwipeableCard = forwardRef<SwipeableCardHandle, SwipeableCardProps>
       children,
       onSwipeLeft,
       onSwipeRight,
+      onSwipeUp,
+      onSwipeDown,
       onTap,
       threshold = DEFAULT_THRESHOLD,
       disabled = false,
@@ -38,6 +40,8 @@ export const SwipeableCard = forwardRef<SwipeableCardHandle, SwipeableCardProps>
     } = useCardSwipe({
       onSwipeLeft,
       onSwipeRight,
+      onSwipeUp,
+      onSwipeDown,
       onTap,
       threshold,
       disabled,
@@ -68,6 +72,9 @@ export const SwipeableCard = forwardRef<SwipeableCardHandle, SwipeableCardProps>
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
       >
         <div className="swipeable-card__inner" style={dynamicVars}>
           {/* Retry Stamp (shown when dragging left) */}

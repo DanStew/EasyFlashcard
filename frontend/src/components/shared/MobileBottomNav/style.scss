@@ -1,0 +1,184 @@
+@use '@/styles/variables' as *;
+@use '@/styles/mixins' as *;
+
+.mobile-bottom-nav {
+  display: none; // Hidden on desktop viewports
+
+  @include breakpoint-md {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: #{$z-index-sticky + 50};
+    height: calc(62px + var(--sab));
+    padding-bottom: var(--sab);
+    padding-left: clamp($spacing-4, 5vw, $spacing-10);
+    padding-right: clamp($spacing-4, 5vw, $spacing-10);
+    background-color: var(--bg-topbar);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-top: 1px solid var(--border-light);
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.09);
+    transition: transform $transition-normal;
+    user-select: none;
+  }
+
+  &__item {
+    @include flex-col;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 0 1 100px;
+    height: 100%;
+    min-height: 48px;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: color $transition-fast, transform $transition-fast;
+    padding: 6px 0;
+
+    &:active {
+      transform: scale(0.92);
+    }
+
+    &--active {
+      color: var(--color-primary);
+
+      .mobile-bottom-nav__icon-wrap {
+        color: var(--color-primary);
+        background-color: var(--color-primary-subtle);
+      }
+
+      .mobile-bottom-nav__label {
+        color: var(--color-primary);
+        font-weight: $font-weight-semibold;
+      }
+    }
+  }
+
+  &__icon-wrap {
+    @include flex-center;
+    width: 44px;
+    height: 30px;
+    border-radius: $radius-full;
+    transition: all $transition-fast;
+  }
+
+  &__label {
+    font-size: 11px;
+    font-weight: $font-weight-medium;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    transition: color $transition-fast;
+  }
+
+  // Floating Action Button in center
+  &__fab {
+    @include flex-center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    color: #ffffff;
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.45);
+    border: none;
+    cursor: pointer;
+    margin-top: -18px;
+    flex-shrink: 0;
+    transition: transform $transition-fast, box-shadow $transition-fast;
+
+    &:active {
+      transform: scale(0.88);
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+  }
+
+  &__fab-wrapper {
+    @include flex-col;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+  }
+}
+
+// Quick Action Bottom Sheet Options
+.mobile-quick-action-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  padding: $spacing-1 0;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    padding: $spacing-3 $spacing-4;
+    border-radius: $radius-lg;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    transition: all $transition-fast;
+    width: 100%;
+
+    &:hover,
+    &:active {
+      background-color: var(--bg-hover);
+      border-color: var(--color-primary-subtle);
+      transform: translateY(-1px);
+    }
+
+    &-icon {
+      @include flex-center;
+      width: 40px;
+      height: 40px;
+      border-radius: $radius-md;
+      flex-shrink: 0;
+
+      &--primary {
+        background-color: var(--color-primary-subtle);
+        color: var(--color-primary);
+      }
+
+      &--secondary {
+        background-color: rgba(139, 92, 246, 0.12);
+        color: #8b5cf6;
+      }
+
+      &--success {
+        background-color: var(--color-success-subtle);
+        color: var(--color-success);
+      }
+
+      &--warning {
+        background-color: var(--color-warning-subtle);
+        color: var(--color-warning);
+      }
+    }
+
+    &-info {
+      @include flex-col;
+      gap: 2px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    &-title {
+      font-size: $font-size-sm;
+      font-weight: $font-weight-semibold;
+      color: var(--text-primary);
+    }
+
+    &-subtitle {
+      font-size: $font-size-xs;
+      color: var(--text-secondary);
+    }
+  }
+}

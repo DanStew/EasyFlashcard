@@ -20,6 +20,11 @@ const config: CapacitorConfig = {
     StatusBar: {
       overlaysWebView: false,
     },
+    GoogleAuth: {
+      scopes: ['profile', 'email', 'https://www.googleapis.com/auth/drive'],
+      serverClientId: '652975745934-fdt5db9qkm7ni511t72tmjd9i0mo3gtq.apps.googleusercontent.com',
+      forceCodeForRefreshToken: true,
+    },
   },
 };
 

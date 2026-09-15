@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/useToast';
 import { useWorkspace } from '@/hooks/useWorkspace';
 import { ApiError } from '@/services/apiClient';
 import { flashcardService } from '@/services/flashcardService';
+import { quickAccessService } from '@/services/quickAccessService';
 import { setService } from '@/services/setService';
 import type { Flashcard } from '@/types/flashcard';
 import type { SetModel } from '@/types/set';
@@ -66,6 +67,7 @@ export function SetDetailView({ setId: propSetId }: SetDetailViewProps) {
       setSet(setData);
       setCards(cardsData);
       setActiveCardIndex(0);
+      quickAccessService.recordActivity(setData.id, 'set', setData.name, 'view');
     } catch (err: unknown) {
       if (err instanceof ApiError && err.isNotFound) {
         setIsNotFound(true);

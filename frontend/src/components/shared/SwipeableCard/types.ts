@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
 
-export type SwipeDirection = 'left' | 'right' | null;
+export type SwipeDirection = 'left' | 'right' | 'up' | 'down' | null;
 
 export interface SwipeableCardProps {
   children: ReactNode;
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
+  onSwipeUp?: () => void;
+  onSwipeDown?: () => void;
   onTap?: () => void;
   threshold?: number;
   disabled?: boolean;

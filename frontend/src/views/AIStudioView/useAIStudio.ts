@@ -333,7 +333,7 @@ export function useAIStudio() {
   };
 
   const handleNavigateToSet = (setId: string) => {
-    navigate(`/sets/${setId}`);
+    navigate(`/set/${setId}`);
   };
 
   return {

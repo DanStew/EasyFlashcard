@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/useToast';
 import { useWorkspace } from '@/hooks/useWorkspace';
 import { ApiError } from '@/services/apiClient';
 import { folderService } from '@/services/folderService';
+import { quickAccessService } from '@/services/quickAccessService';
 import { setService } from '@/services/setService';
 import type { Folder } from '@/types/folder';
 import type { SetModel } from '@/types/set';
@@ -107,6 +108,7 @@ export function FolderExplorerView({ folderId: propFolderId }: FolderExplorerVie
         setRenameValue(folder.name);
         setSubfolders(children);
         setSets(folderSets);
+        quickAccessService.recordActivity(folder.id, 'folder', folder.name, 'view');
       } else {
         // Root / Library mode: fetch root-level folders and root-level sets only
         const [rootFolders, rootSets] = await Promise.all([

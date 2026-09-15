@@ -9,10 +9,10 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Copy package dependency manifests
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc* ./
 
 # Clean dependency installation
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Copy application source files
 COPY . .

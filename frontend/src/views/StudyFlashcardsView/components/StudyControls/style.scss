@@ -31,6 +31,10 @@
     border: 1px solid transparent;
     white-space: nowrap;
 
+    &:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
     &:disabled {
       opacity: 0.45;
       cursor: not-allowed;
@@ -46,10 +50,6 @@
         border-color: var(--color-danger);
         transform: translateY(-1px);
       }
-
-      &:active:not(:disabled) {
-        transform: translateY(0);
-      }
     }
 
     &--flip {
@@ -63,10 +63,6 @@
         border-color: var(--border-default);
         transform: translateY(-1px);
       }
-
-      &:active:not(:disabled) {
-        transform: translateY(0);
-      }
     }
 
     &--master {
@@ -78,10 +74,6 @@
         background-color: var(--color-success-subtle);
         border-color: var(--color-success);
         transform: translateY(-1px);
-      }
-
-      &:active:not(:disabled) {
-        transform: translateY(0);
       }
     }
   }
@@ -102,6 +94,10 @@
       background-color: var(--bg-hover);
       color: var(--text-primary);
       border-color: var(--border-default);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.92);
     }
 
     &:disabled {
@@ -127,8 +123,21 @@
     color: var(--text-tertiary);
   }
 
-  // Responsive: Tablet & Compact Viewports
+  // Tablet & Mobile Adaptive Floating Thumb Dock (< 640px)
   @media (max-width: 640px) {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: #{$z-index-sticky + 40};
+    max-width: 100%;
+    margin: 0;
+    padding: $spacing-2 $spacing-3 calc($spacing-2 + var(--sab));
+    background-color: var(--bg-topbar);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-top: 1px solid var(--border-light);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
     gap: $spacing-2;
 
     &__key-badge {
@@ -137,65 +146,45 @@
 
     &__group {
       gap: $spacing-2;
+      flex: 1;
+      justify-content: center;
     }
 
     &__btn {
-      padding: 10px $spacing-3;
+      padding: 11px $spacing-3;
       font-size: $font-size-xs;
+      flex: 1;
+      min-width: 0;
 
       &--flip {
-        min-width: 90px;
+        min-width: 75px;
+        flex: 1.2;
       }
     }
 
     &__icon-btn {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
     }
   }
 
-  // Mobile Thumb Ergonomics Grid (< 460px)
-  @media (max-width: 460px) {
-    display: grid;
-    grid-template-columns: 42px 1fr 1fr 42px;
-    grid-template-rows: auto auto;
-    gap: $spacing-2;
-    width: 100%;
+  // Very narrow mobile screens (< 380px)
+  @media (max-width: 380px) {
+    padding: $spacing-2 $spacing-2 calc($spacing-2 + var(--sab));
 
-    &__icon-btn:first-of-type {
-      grid-column: 1;
-      grid-row: 1;
+    &__btn {
+      padding: 10px 6px;
+      font-size: 11px;
+      gap: 4px;
+
+      span {
+        display: none; // Icon only on ultra-compact phones
+      }
     }
 
-    &__group {
-      display: contents;
-    }
-
-    &__btn--flip {
-      grid-column: 2 / 4;
-      grid-row: 1;
-      width: 100%;
-      min-width: 0;
-      padding: 12px $spacing-2;
-    }
-
-    &__icon-btn:last-of-type {
-      grid-column: 4;
-      grid-row: 1;
-    }
-
-    &__btn--retry {
-      grid-column: 1 / 3;
-      grid-row: 2;
-      width: 100%;
-      padding: 12px $spacing-2;
-    }
-
-    &__btn--master {
-      grid-column: 3 / 5;
-      grid-row: 2;
-      width: 100%;
-      padding: 12px $spacing-2;
+    &__icon-btn {
+      width: 38px;
+      height: 38px;
     }
   }
 }

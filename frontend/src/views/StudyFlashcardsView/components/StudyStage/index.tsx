@@ -36,6 +36,8 @@ export function StudyStage({
             ref={swipeCardRef}
             onSwipeLeft={onSwipeLeft}
             onSwipeRight={onSwipeRight}
+            onSwipeUp={onFlip}
+            onSwipeDown={() => onToggleStar(currentCard.id)}
             onTap={onFlip}
             retryLabel="NEEDS PRACTICE"
             masterLabel="MASTERED"
@@ -43,7 +45,6 @@ export function StudyStage({
             <Flashcard3D
               card={currentCard}
               isFlipped={isFlipped}
-              onFlip={onFlip}
               orientation={orientation}
               size="lg"
               showActions={false}

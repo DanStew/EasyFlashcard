@@ -9,6 +9,7 @@ import { FolderSelect } from '@/components/shared/FolderSelect';
 import { Input } from '@/components/shared/Input';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { TextArea } from '@/components/shared/TextArea';
+import { useHaptics } from '@/hooks/useHaptics';
 import { useToast } from '@/hooks/useToast';
 import { useWorkspace } from '@/hooks/useWorkspace';
 import { ApiError } from '@/services/apiClient';
@@ -18,6 +19,8 @@ import { setService } from '@/services/setService';
 import type { FlashcardCreate } from '@/types/flashcard';
 import type { Folder } from '@/types/folder';
 import { NotFoundView } from '@/views/NotFoundView';
+import { SetEditorQuickFormatBar, type FormatAction } from './components/SetEditorQuickFormatBar';
+import { applyTextFormat } from './components/SetEditorQuickFormatBar/utils';
 import type { CardDraft } from './types';
 import { createEmptyCardDraft, validateSetDraft } from './utils';
 import './style.scss';
@@ -91,11 +94,16 @@ export function SetEditorView() {
     loadData();
   }, [loadData]);
 
+  const { hapticTick, hapticSuccess, hapticWarning } = useHaptics();
+  const [focusedField, setFocusedField] = useState<'frontText' | 'backText'>('frontText');
+
   const handleAddCardRow = () => {
+    hapticTick();
     setCards((prev) => [...prev, createEmptyCardDraft(prev.length)]);
   };
 
   const handleRemoveCardRow = (index: number) => {
+    hapticWarning();
     setCards((prev) => {
       if (prev.length <= 1) return prev;
       return prev.filter((_, i) => i !== index);
@@ -103,6 +111,7 @@ export function SetEditorView() {
   };
 
   const handleMoveCard = (index: number, direction: 'up' | 'down') => {
+    hapticTick();
     setCards((prev) => {
       const newCards = [...prev];
       const targetIndex = direction === 'up' ? index - 1 : index + 1;
@@ -119,6 +128,39 @@ export function SetEditorView() {
     setCards((prev) => {
       const newCards = [...prev];
       newCards[index] = { ...newCards[index], [field]: value };
+      return newCards;
+    });
+  };
+
+  const handleQuickFormat = (cardIndex: number, action: FormatAction) => {
+    setCards((prev) => {
+      const newCards = [...prev];
+      const card = newCards[cardIndex];
+      if (!card) return prev;
+
+      if (action === 'swap') {
+        // Swap front and back text
+        newCards[cardIndex] = {
+          ...card,
+          frontText: card.backText,
+          backText: card.frontText,
+        };
+        return newCards;
+      }
+
+      const targetField = focusedField;
+      const currentText = card[targetField];
+      const { newText } = applyTextFormat(
+        currentText,
+        currentText.length,
+        currentText.length,
+        action
+      );
+
+      newCards[cardIndex] = {
+        ...card,
+        [targetField]: newText,
+      };
       return newCards;
     });
   };
@@ -169,6 +211,7 @@ export function SetEditorView() {
         }
 
         showSuccess('Set and flashcards updated!');
+        hapticSuccess();
       } else {
         const createdSet = await setService.createSet({
           name: name.trim(),
@@ -190,6 +233,7 @@ export function SetEditorView() {
         }
 
         showSuccess('Flashcard set created!');
+        hapticSuccess();
       }
 
       navigate(`/set/${targetSetId}`);
@@ -353,26 +397,45 @@ export function SetEditorView() {
             </div>
 
             <div className="set-editor-view__row-fields">
-              <TextArea
-                label="Term (Front)"
-                placeholder="Enter term or question (Supports Markdown & $inline$ LaTeX)..."
-                value={card.frontText}
-                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                  handleCardChange(index, 'frontText', e.target.value)
-                }
-                rows={3}
-                fullWidth
-              />
+              <div
+                onFocus={() => {
+                  setFocusedField('frontText');
+                }}
+              >
+                <TextArea
+                  label="Term (Front)"
+                  placeholder="Enter term or question (Supports Markdown & $inline$ LaTeX)..."
+                  value={card.frontText}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                    handleCardChange(index, 'frontText', e.target.value)
+                  }
+                  rows={3}
+                  fullWidth
+                />
+              </div>
 
-              <TextArea
-                label="Definition (Back)"
-                placeholder="Enter definition or answer (Supports Markdown & $$block$$ equations)..."
-                value={card.backText}
-                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                  handleCardChange(index, 'backText', e.target.value)
-                }
-                rows={3}
-                fullWidth
+              <div
+                onFocus={() => {
+                  setFocusedField('backText');
+                }}
+              >
+                <TextArea
+                  label="Definition (Back)"
+                  placeholder="Enter definition or answer (Supports Markdown & $$block$$ equations)..."
+                  value={card.backText}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                    handleCardChange(index, 'backText', e.target.value)
+                  }
+                  rows={3}
+                  fullWidth
+                />
+              </div>
+            </div>
+
+            {/* Quick Markdown & LaTeX Formatting Accessory Strip */}
+            <div className="set-editor-view__row-format-strip">
+              <SetEditorQuickFormatBar
+                onFormat={(action) => handleQuickFormat(index, action)}
               />
             </div>
           </div>
@@ -411,6 +474,29 @@ export function SetEditorView() {
           </Button>
         </div>
       </section>
+
+      {/* Mobile Sticky Thumb Action Dock */}
+      <div className="set-editor-view__mobile-sticky-dock" aria-label="Mobile Set Editor Actions">
+        <Button
+          type="button"
+          variant="secondary"
+          size="md"
+          leftIcon={<Plus size={16} />}
+          onClick={handleAddCardRow}
+        >
+          Add Card
+        </Button>
+
+        <Button
+          type="submit"
+          variant="gradient"
+          size="md"
+          leftIcon={<Save size={16} />}
+          isLoading={isSaving}
+        >
+          Save ({cards.filter((c) => c.frontText.trim() && c.backText.trim()).length})
+        </Button>
+      </div>
     </form>
   );
 }

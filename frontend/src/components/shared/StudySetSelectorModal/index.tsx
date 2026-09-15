@@ -124,7 +124,6 @@ export function StudySetSelectorModal({
               placeholder="Search sets across all folders..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              autoFocus={isOpen}
             />
             {isSearching && (
               <button

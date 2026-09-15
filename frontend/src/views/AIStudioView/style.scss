@@ -188,6 +188,56 @@
   }
 }
 
+@include breakpoint-md {
+  .ai-studio-view {
+    gap: $spacing-4;
+
+    &__hero {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: $spacing-3 $spacing-4;
+      border-radius: $radius-lg;
+      gap: $spacing-2;
+
+      &::after {
+        display: none;
+      }
+    }
+
+    &__hero-left {
+      gap: 4px;
+    }
+
+    &__title {
+      font-size: $font-size-lg;
+    }
+
+    &__subtitle {
+      display: none; // Hide descriptive marketing paragraph on mobile to show docs immediately
+    }
+
+    &__stats {
+      display: none; // Hide bulky stat boxes on mobile
+    }
+
+    &__main {
+      gap: $spacing-4;
+    }
+
+    &__explorer-section {
+      gap: $spacing-2;
+    }
+
+    &__section-title {
+      font-size: $font-size-sm;
+    }
+
+    &__section-tagline {
+      display: none;
+    }
+  }
+}
+
 @include breakpoint-lg {
   .ai-studio-view {
     &__hero {

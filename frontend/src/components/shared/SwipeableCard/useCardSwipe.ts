@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useHaptics } from '@/hooks/useHaptics';
 import type { SwipeState } from './types';
 import {
   calculateRotation,
   calculateStampOpacity,
-  DEFAULT_THRESHOLD,
   determineDirection,
 } from './utils';
 
 interface UseCardSwipeOptions {
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
+  onSwipeUp?: () => void;
+  onSwipeDown?: () => void;
   onTap?: () => void;
   threshold?: number;
   disabled?: boolean;
@@ -18,10 +20,14 @@ interface UseCardSwipeOptions {
 export function useCardSwipe({
   onSwipeLeft,
   onSwipeRight,
+  onSwipeUp,
+  onSwipeDown,
   onTap,
-  threshold = DEFAULT_THRESHOLD,
+  threshold,
   disabled = false,
 }: UseCardSwipeOptions) {
+  const { hapticTick, hapticThreshold, hapticSuccess, hapticWarning } = useHaptics();
+
   const [swipeState, setSwipeState] = useState<SwipeState>({
     offsetX: 0,
     offsetY: 0,
@@ -35,7 +41,10 @@ export function useCardSwipe({
 
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const isPointerDownRef = useRef(false);
+  const cardWidthRef = useRef<number>(360);
+  const hasTriggeredThresholdHapticRef = useRef(false);
   const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTapTimeRef = useRef<number>(0);
 
   useEffect(() => {
     return () => {
@@ -45,11 +54,20 @@ export function useCardSwipe({
     };
   }, []);
 
+  const getEffectiveThreshold = useCallback(() => {
+    if (threshold && threshold > 0) return threshold;
+    // Calculate dynamic threshold based on card width (28% of width, min 70px, max 140px)
+    return Math.min(140, Math.max(70, cardWidthRef.current * 0.28));
+  }, [threshold]);
+
   const handlePointerDown = useCallback(
     (e: ReactPointerEvent<HTMLDivElement>) => {
       if (disabled || swipeState.isExiting) return;
-      // Only handle primary button
       if (e.button !== 0) return;
+
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      cardWidthRef.current = rect.width || 360;
+      hasTriggeredThresholdHapticRef.current = false;
 
       dragStartRef.current = { x: e.clientX, y: e.clientY };
       isPointerDownRef.current = true;
@@ -68,10 +86,21 @@ export function useCardSwipe({
       if (!isPointerDownRef.current || !dragStartRef.current || disabled) return;
 
       const dx = e.clientX - dragStartRef.current.x;
-      const dy = (e.clientY - dragStartRef.current.y) * 0.25; // damp vertical movement
+      const rawDy = e.clientY - dragStartRef.current.y;
+      const dy = rawDy * 0.4; // smooth vertical damping
       const rot = calculateRotation(dx);
       const dir = determineDirection(dx);
-      const stampOp = calculateStampOpacity(dx, threshold);
+      const effectiveThreshold = getEffectiveThreshold();
+      const stampOp = calculateStampOpacity(dx, effectiveThreshold);
+
+      // Check if crossing threshold for haptic tick
+      const isPastThreshold = Math.abs(dx) >= effectiveThreshold;
+      if (isPastThreshold && !hasTriggeredThresholdHapticRef.current) {
+        hapticThreshold();
+        hasTriggeredThresholdHapticRef.current = true;
+      } else if (!isPastThreshold && hasTriggeredThresholdHapticRef.current) {
+        hasTriggeredThresholdHapticRef.current = false;
+      }
 
       setSwipeState((prev) => ({
         ...prev,
@@ -82,7 +111,7 @@ export function useCardSwipe({
         stampOpacity: stampOp,
       }));
     },
-    [disabled, threshold]
+    [disabled, getEffectiveThreshold, hapticThreshold]
   );
 
   const finishDrag = useCallback(
@@ -100,9 +129,18 @@ export function useCardSwipe({
 
       const { offsetX, offsetY } = swipeState;
       const totalDist = Math.hypot(offsetX, offsetY);
+      const effectiveThreshold = getEffectiveThreshold();
 
-      // If barely moved, consider it a tap/flip
-      if (totalDist < 6) {
+      // Tap / Flip handling with debounce
+      if (totalDist < 10) {
+        const now = Date.now();
+        if (now - lastTapTimeRef.current > 280) {
+          lastTapTimeRef.current = now;
+          hapticTick();
+          if (onTap) {
+            onTap();
+          }
+        }
         setSwipeState((prev) => ({
           ...prev,
           offsetX: 0,
@@ -112,15 +150,44 @@ export function useCardSwipe({
           direction: null,
           stampOpacity: 0,
         }));
-        if (onTap) {
-          onTap();
-        }
         return;
       }
 
-      // Check if threshold exceeded
-      if (offsetX > threshold) {
+      // Vertical swipe detection (swipe up = flip, swipe down = star)
+      if (Math.abs(offsetY) > 55 && Math.abs(offsetY) > Math.abs(offsetX) * 1.4) {
+        if (offsetY < 0) {
+          // Swiped Up -> Flip card
+          hapticTick();
+          if (onSwipeUp) {
+            onSwipeUp();
+          } else if (onTap) {
+            onTap();
+          }
+        } else {
+          // Swiped Down -> Star or secondary action
+          if (onSwipeDown) {
+            hapticTick();
+            onSwipeDown();
+          }
+        }
+
+        // Reset card state
+        setSwipeState((prev) => ({
+          ...prev,
+          offsetX: 0,
+          offsetY: 0,
+          rotation: 0,
+          isDragging: false,
+          direction: null,
+          stampOpacity: 0,
+        }));
+        return;
+      }
+
+      // Horizontal swipe threshold exceeded
+      if (offsetX > effectiveThreshold) {
         // Mastered swipe right
+        hapticSuccess();
         setSwipeState((prev) => ({
           ...prev,
           isDragging: false,
@@ -144,8 +211,9 @@ export function useCardSwipe({
             exitDirection: null,
           });
         }, 260);
-      } else if (offsetX < -threshold) {
+      } else if (offsetX < -effectiveThreshold) {
         // Retry swipe left
+        hapticWarning();
         setSwipeState((prev) => ({
           ...prev,
           isDragging: false,
@@ -182,7 +250,18 @@ export function useCardSwipe({
         }));
       }
     },
-    [onSwipeLeft, onSwipeRight, onTap, swipeState, threshold]
+    [
+      getEffectiveThreshold,
+      hapticSuccess,
+      hapticTick,
+      hapticWarning,
+      onSwipeDown,
+      onSwipeLeft,
+      onSwipeRight,
+      onSwipeUp,
+      onTap,
+      swipeState,
+    ]
   );
 
   const triggerSwipe = useCallback(
@@ -190,6 +269,12 @@ export function useCardSwipe({
       if (swipeState.isExiting) return;
 
       const isRight = direction === 'right';
+      if (isRight) {
+        hapticSuccess();
+      } else {
+        hapticWarning();
+      }
+
       setSwipeState({
         offsetX: isRight ? 500 : -500,
         offsetY: 0,
@@ -219,7 +304,7 @@ export function useCardSwipe({
         });
       }, 260);
     },
-    [onSwipeLeft, onSwipeRight, swipeState.isExiting]
+    [hapticSuccess, hapticWarning, onSwipeLeft, onSwipeRight, swipeState.isExiting]
   );
 
   return {

@@ -4,4 +4,5 @@
     <string name="title_activity_main">EasyFlashcard</string>
     <string name="package_name">com.easyflashcard.app</string>
     <string name="custom_url_scheme">com.easyflashcard.app</string>
+    <string name="server_client_id">652975745934-fdt5db9qkm7ni511t72tmjd9i0mo3gtq.apps.googleusercontent.com</string>
 </resources>

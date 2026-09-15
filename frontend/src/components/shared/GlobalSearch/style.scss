@@ -86,6 +86,10 @@
     padding: 1px 5px;
     line-height: 1.2;
     pointer-events: none;
+
+    @media (max-width: $breakpoint-md) {
+      display: none;
+    }
   }
 
   &__loading-spinner {

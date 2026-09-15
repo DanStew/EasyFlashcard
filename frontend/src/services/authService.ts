@@ -9,16 +9,39 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithCredential,
   linkWithPopup,
+  linkWithCredential,
   reauthenticateWithPopup,
   type User,
   type UserCredential,
   type Unsubscribe,
 } from 'firebase/auth';
+import { isCapacitorNative } from '@/utils/capacitorUtils';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { auth, isFirebaseConfigured } from './firebase';
 
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
 const GDRIVE_TOKEN_STORAGE_KEY = 'easyflashcard_gdrive_access_token';
+
+let isGoogleAuthInitialized = false;
+
+function ensureGoogleAuthInitialized() {
+  if (!isGoogleAuthInitialized && typeof window !== 'undefined') {
+    try {
+      GoogleAuth.initialize({
+        clientId:
+          import.meta.env.VITE_OAUTH_CLIENT_ID ||
+          '652975745934-fdt5db9qkm7ni511t72tmjd9i0mo3gtq.apps.googleusercontent.com',
+        scopes: ['profile', 'email'],
+        grantOfflineAccess: true,
+      });
+      isGoogleAuthInitialized = true;
+    } catch (e) {
+      console.warn('GoogleAuth initialize notice:', e);
+    }
+  }
+}
 
 /**
  * Creates and configures GoogleAuthProvider with Google Drive scopes.
@@ -68,12 +91,45 @@ export function clearGoogleDriveAccessToken(): void {
 }
 
 /**
- * Signs in using Google popup and requests Google Drive file access.
+ * Signs in using Google.
+ * On Native Android: Triggers native Google Account bottom sheet dialog and authenticates with Firebase.
+ * On Web: Opens standard Firebase popup.
  */
 export async function signInWithGoogle(): Promise<UserCredential> {
   if (!auth || !isFirebaseConfigured()) {
     throw new Error('Firebase Authentication is not configured in this environment.');
   }
+
+  if (isCapacitorNative()) {
+    ensureGoogleAuthInitialized();
+    try {
+      const googleUser = await GoogleAuth.signIn();
+      const idToken = googleUser?.authentication?.idToken;
+      const accessToken = googleUser?.authentication?.accessToken;
+
+      if (!idToken) {
+        throw new Error('Google Sign-In did not return an authentication token.');
+      }
+
+      const credential = GoogleAuthProvider.credential(idToken, accessToken);
+      const userCredential = await signInWithCredential(auth, credential);
+
+      if (accessToken) {
+        saveGoogleDriveAccessToken(accessToken);
+      }
+      return userCredential;
+    } catch (err: unknown) {
+      console.error('Native Google Sign-In error:', err);
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg.includes('10') || errMsg.includes('DEVELOPER_ERROR') || errMsg.includes('12500') || errMsg.includes('status code')) {
+        throw new Error(
+          'Google Sign-In requires the debug SHA-1 fingerprint to be added in Firebase Console.'
+        );
+      }
+      throw err;
+    }
+  }
+
   const provider = getGoogleDriveAuthProvider();
   const credential = await signInWithPopup(auth, provider);
   const oauthCredential = GoogleAuthProvider.credentialFromResult(credential);
@@ -90,6 +146,31 @@ export async function linkGoogleDriveAccount(): Promise<UserCredential> {
   if (!auth || !auth.currentUser || !isFirebaseConfigured()) {
     throw new Error('You must be signed in to connect a Google Drive account.');
   }
+
+  if (isCapacitorNative()) {
+    ensureGoogleAuthInitialized();
+    const googleUser = await GoogleAuth.signIn();
+    const idToken = googleUser?.authentication?.idToken;
+    const accessToken = googleUser?.authentication?.accessToken;
+
+    if (!idToken) {
+      throw new Error('Google Sign-In did not return an authentication token.');
+    }
+
+    const credential = GoogleAuthProvider.credential(idToken, accessToken);
+    let userCredential: UserCredential;
+    try {
+      userCredential = await linkWithCredential(auth.currentUser, credential);
+    } catch {
+      userCredential = await signInWithCredential(auth, credential);
+    }
+
+    if (accessToken) {
+      saveGoogleDriveAccessToken(accessToken);
+    }
+    return userCredential;
+  }
+
   const provider = getGoogleDriveAuthProvider();
   let credential: UserCredential;
   try {

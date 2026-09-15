@@ -29,16 +29,29 @@ export function useCapacitorMobile(): void {
 
     let isMounted = true;
 
-    const backButtonListenerPromise = CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+    const backButtonListenerPromise = CapacitorApp.addListener('backButton', () => {
       if (!isMounted) return;
 
-      // If at root workspace without history, minimize or exit app
-      if (location.pathname === '/' || !canGoBack) {
+      // Only exit app when at root library page
+      if (location.pathname === '/') {
         CapacitorApp.exitApp();
-      } else {
-        // Navigate back in React Router history
-        navigate(-1);
+        return;
       }
+
+      // If in study mode, cleanly exit back to the flashcard set or root library
+      if (location.pathname === '/study') {
+        navigate('/');
+        return;
+      }
+
+      if (location.pathname.endsWith('/study')) {
+        const setRoute = location.pathname.replace(/\/study$/, '');
+        navigate(setRoute || '/');
+        return;
+      }
+
+      // Navigate back in React Router history
+      navigate(-1);
     });
 
     return () => {

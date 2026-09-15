@@ -11,6 +11,16 @@
   @include flex-center;
   padding: $spacing-4;
   animation: modalOverlayFadeIn $transition-fast ease-out forwards;
+
+  // Bottom Sheet on Mobile (< 640px) or when forced with --sheet
+  &--sheet,
+  &:not(.modal-overlay--dialog) {
+    @include breakpoint-sm {
+      align-items: flex-end;
+      padding: 0;
+      padding-top: max(20px, var(--sat));
+    }
+  }
 }
 
 @keyframes modalOverlayFadeIn {
@@ -56,6 +66,50 @@
     max-width: 95vw;
     height: 90vh;
     height: 90dvh;
+  }
+
+  // Drag Handle Area for Mobile Bottom Sheet
+  &__drag-handle-area {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding-top: $spacing-2;
+    padding-bottom: 2px;
+    background-color: var(--bg-surface-raised);
+    cursor: grab;
+    touch-action: pan-y;
+  }
+
+  &__drag-handle {
+    width: 36px;
+    height: 4px;
+    border-radius: $radius-full;
+    background-color: var(--border-default);
+    opacity: 0.6;
+  }
+
+  // Adaptive Bottom Sheet Styles on Mobile Screens (< 640px)
+  &--sheet,
+  &:not(.modal-dialog--dialog) {
+    @include breakpoint-sm {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-top-left-radius: $radius-2xl;
+      border-top-right-radius: $radius-2xl;
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+      max-height: calc(88dvh - var(--sat));
+      margin-top: calc(var(--sat) + 16px);
+      max-width: 100%;
+      animation: modalSheetSlideUp 280ms cubic-bezier(0.16, 1, 0.3, 1);
+
+      .modal-dialog__drag-handle-area {
+        display: flex;
+        padding-top: $spacing-3;
+        padding-bottom: $spacing-1;
+      }
+    }
   }
 
   &__header {
@@ -109,10 +163,12 @@
     overflow-y: auto;
     @include custom-scrollbar;
     flex: 1;
+    -webkit-overflow-scrolling: touch;
   }
 
   &__footer {
     padding: clamp($spacing-3, 3vw, $spacing-4) clamp($spacing-4, 3vw, $spacing-6);
+    padding-bottom: max(clamp($spacing-3, 3vw, $spacing-4), var(--sab));
     border-top: 1px solid var(--border-light);
     background-color: var(--bg-surface-raised);
     display: flex;
@@ -131,5 +187,14 @@
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalSheetSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
   }
 }

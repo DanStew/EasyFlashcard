@@ -15,6 +15,10 @@
     transform: translateY(-2px);
   }
 
+  &:active {
+    transform: scale(0.985);
+  }
+
   // Grid view mode
   &--grid {
     flex-direction: column;
@@ -178,8 +182,8 @@
     transition: all $transition-fast;
 
     @media (pointer: coarse) {
-      min-width: 36px;
-      min-height: 36px;
+      min-width: 44px;
+      min-height: 44px;
     }
 
     &:hover {

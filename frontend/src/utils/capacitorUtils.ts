@@ -11,8 +11,9 @@ export const STORAGE_KEY_API_BASE_URL = 'easyflashcard_api_base_url';
 export const EVENT_API_BASE_URL_CHANGED = 'easyflashcard_api_base_url_changed';
 
 export const DEFAULT_WEB_API_BASE_URL = '/api/v1';
+export const DEFAULT_CLOUD_RUN_BASE_URL = 'https://easy-flashcard-backend-652975745934.europe-west1.run.app/api/v1';
 export const DEFAULT_ANDROID_EMULATOR_BASE_URL = 'http://10.0.2.2:8000/api/v1';
-export const DEFAULT_ANDROID_LAN_BASE_URL = 'http://192.168.1.100:8000/api/v1';
+export const DEFAULT_ANDROID_LAN_BASE_URL = 'http://10.217.136.140:8000/api/v1';
 
 /**
  * Check whether the application is running inside a native Capacitor wrapper (Android/iOS).
@@ -108,7 +109,7 @@ export function getApiBaseUrl(): string {
 
   // Native Android shell fallback if no environment variable was supplied during build
   if (isCapacitorNative() && getPlatformName() === 'android') {
-    return DEFAULT_ANDROID_EMULATOR_BASE_URL;
+    return DEFAULT_CLOUD_RUN_BASE_URL;
   }
 
   return DEFAULT_WEB_API_BASE_URL;
